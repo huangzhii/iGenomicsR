@@ -93,7 +93,7 @@ shinyUI(pageWithSidebar(
                                       h4("de novo clustering of whole proteome or selected genes"),
                                       radioButtons("ProteinheatIsInputGenes", "", list("Input genes"=0, "de nov"=1), 0),
                                       conditionalPanel(condition="input.ProteinheatIsInputGenes==0",
-                                                       textInput("ProteinheatInputGenes", "Paste genes here", "PTEN")),
+                                                       textInput("ProteinheatInputGenes", "Paste genes here", "PTEN, AATF")),
                                       conditionalPanel(condition="input.ProteinheatIsInputGenes==1",
                                                        textInput("ProteinheatGeneCutoff", "Gene filter criteria", "var > 0.95"),
                                                        p("eg. maxExp > 0.5 and var > 0.8 and cv > 0.5\nFilter order: maxExp, var, cv. Check FAQ for more detail.")),
