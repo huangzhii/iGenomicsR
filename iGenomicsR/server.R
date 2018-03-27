@@ -124,25 +124,25 @@ shinyServer(function(input, output, session) {
   output$downloadSelectedMutation <- downloadHandler(
     filename = function() { "SelectedMutationTable.csv" },
     content = function(file) {
-      sampleSelection()
+      sampleSelection
       write.csv(DB[["Mutation_gene"]], file, row.names=TRUE)
     }) ###
   output$downloadSelectedRNA <- downloadHandler(
     filename = function() { "SelectedRNATable.csv" },
     content = function(file) {
-      sampleSelection()
+      sampleSelection
       write.csv(DB[["RNA"]], file, row.names=TRUE)
     }) ###
   output$downloadSelectedProtein <- downloadHandler(
     filename = function() { "SelectedProteinTable.csv" },
     content = function(file) {
-      sampleSelection()
+      sampleSelection
       write.csv(DB[["Protein"]], file, row.names=TRUE)
     }) ###
   output$downloadSelectedClin <- downloadHandler(
     filename = function() { "SelectedClinicalTable.csv" },
     content = function(file) {
-      sampleSelection()
+      sampleSelection
       write.csv(DB[["Clinical"]], file, row.names=TRUE)
     }) ###
 
