@@ -456,7 +456,7 @@ shinyServer(function(input, output, session) {
     } else {
       res
     }
-  })
+  }, include.rownames=TRUE)
   output$dowloadAnalysisRes <- downloadHandler(
     filename = function() { "full_significant_genes.csv" },
     content = function(file) {

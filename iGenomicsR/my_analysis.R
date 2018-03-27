@@ -26,8 +26,8 @@ get_related_genes_by_mutation <- function(PatList){
     res[,paste("nAltPat_",i, sep="")] <- apply(d[,PatList[[i]]], 1, sum)
   }
   for(i in rownames(d)){
-    if(length(unique(d[i,]))>1){
-      res[i, "pvalue"] <- fisher.test(d[i,], unlist(PatList) %in% PatList[[1]])$p.value
+    if(length(unique(d[i,,drop=TRUE]))>1){
+      res[i, "pvalue"] <- fisher.test(unlist(d[i,,drop=TRUE]), unlist(PatList) %in% PatList[[1]])$p.value
     }
   }
   res <- res[!is.na(res[, "pvalue"]),]
