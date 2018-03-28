@@ -1,3 +1,24 @@
+run_gene_mutation_association <- function(d){
+  min_mut <- 10
+  d2test <- d[apply(d, 1, sum) >= min_mut,]
+  if(nrow(d2test)>1){
+    res <- list()
+    genes2test <- rownames(d2test)
+    for(i in 1:(nrow(d2test)-1)){
+      for(j in (i+1):nrow(d2test)){
+        temp <- fisher.test(unlist(d2test[i,,drop=TRUE]), unlist(d2test[j,,drop=TRUE]))
+        res[[paste(genes2test[i],genes2test[j], sep="_")]] <- c(genes2test[i], genes2test[j], temp$p.value, temp$estimate)
+      }
+    }
+    res <- t(as.data.frame(res))
+    colnames(res) <- c("gene1", "gene2", "pvalue", "oddsRatio")
+    res <- as.data.frame(res)
+    res[["adj_pvalue"]] <- p.adjust(res[["pvalue"]])
+  } else {
+    res <- data.frame(gene1=vector(), gene2=vector(), pvalue=vector(), oddsRatio=vector(), adj_pvalue=vector())
+  } 
+  res
+}
 
 run_analysis <- function(dataType, patients){
   patients_list <- list()

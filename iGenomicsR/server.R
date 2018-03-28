@@ -31,6 +31,7 @@ shinyServer(function(input, output, session) {
       inFile <- input$uploadMutation
       DB[["Mutation_gene"]] <- read.table(inFile$datapath, sep=mySep, header=TRUE, row.names = 1)
       colnames(DB[["Mutation_gene"]]) <- gsub(".", "-", colnames(DB[["Mutation_gene"]]), fixed = TRUE)
+       
     }
     if (!is.null(input$uploadRNA))  {
       inFile <- input$uploadRNA
@@ -502,7 +503,11 @@ shinyServer(function(input, output, session) {
   ########################################################################
   # output gene mutation test result
   output$geneMutationTestResTable <- renderTable({
-    d <- head(DB[["mutation_gene_test"]], n=10)
+    assign("DB", dataL(), envir = .GlobalEnv)
+    print(head(DB[["Mutation_gene"]]))
+    DB[["mutation_gene_test"]] <- run_gene_mutation_association(DB[["Mutation_gene"]])
+    print(DB[["mutation_gene_test"]])
+    d <- head(DB[["mutation_gene_test"]], n=min(10, nrow(DB[["mutation_gene_test"]])))
     d[,"oddsRatio"] <- format(as.numeric(d[,"oddsRatio"]),nsmall=2, digits=2)
     d[,"pvalue"] <- format(as.numeric(d[,"pvalue"]),scientific=TRUE, nsmall=2,digits=2)
     d[,"adj_pvalue"] <- format(as.numeric(d[,"adj_pvalue"]),scientific=TRUE, nsmall=2,digits=2)
