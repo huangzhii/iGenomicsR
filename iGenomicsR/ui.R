@@ -3,7 +3,7 @@
 shinyUI(pageWithSidebar(
   
   
-  headerPanel("iGenomicsR: an integrative platform to explore, visualize, and analyze multidimensional genomics data for disease",
+  headerPanel(h3("iGenomicsR: an integrative platform to explore, visualize, and analyze multidimensional genomics data for disease"),
               tags$head(tags$style(type="text/css", "label.radio { display: inline-block; }", ".radio input[type=\"radio\"] { float: none; }"),
                         tags$style(type="text/css", "select { max-width: 200px; }"),
                         tags$style(type="text/css", "textarea { max-width: 185px; }"),
@@ -11,10 +11,11 @@ shinyUI(pageWithSidebar(
                         tags$style(type='text/css', ".well { max-width: 330px; }"),
                         #tags$link(rel = 'stylesheet', type = 'text/css', href = 'styles.css'),
                         tags$style(type='text/css', ".span4 { max-width: 330px; }")
-              ) 
+              )
   ),
   
   sidebarPanel(
+    
     conditionalPanel(condition="input.tabs1=='Data upload'",
                      radioButtons("fileSepDF", "Delimiter:", list("Tab"=2,"Comma"=1,"Semicolon"=3)),
                      fileInput("uploadMutation", "Load mutation table", multiple = FALSE),
@@ -175,10 +176,7 @@ shinyUI(pageWithSidebar(
                               Erich Neuwirth. <i><a href="http://cran.r-project.org/web/packages/RColorBrewer/index.html">RColorBrewer</a>: ColorBrewer palettes.</i> R package version 1.1-2<br>
                               Hadley Wickham. <i><a href="https://cran.r-project.org/web/packages/reshape2/index.html">reshape2</a>: Flexibly Reshape Data.</i> R package version 1.4.1 <br>
                               David B. Dahl. <i><a href="https://cran.r-project.org/web/packages/xtable/index.html">xtable</a>: Export tables to LaTeX or HTML.</i> R package version 1.7-4 <br>
-                              </p>'),
-                         h6("This application was created by ", a("Xing Tang", href="https://scholar.google.com/citations?user=F9arEIMAAAAJ&hl=en"), 
-                            " from The Ohio State University. Please send bugs and feature requests to Xing Tang (tangx1986(at)gmail.com) or (tang.811(at)osu.edu). This application uses the ", 
-                            a("shiny package from RStudio", href="http://www.rstudio.com/shiny/"), ".")
+                              </p>')
                          ),
                 
                 # Data upload tab
@@ -195,10 +193,7 @@ shinyUI(pageWithSidebar(
                          downloadButton("downloadSelectedMutation", "Download selected mutation data in .csv format"),
                          downloadButton("downloadSelectedRNA", "Download selected RNA data in .csv format"),
                          downloadButton("downloadSelectedProtein", "Download selected protein data in .csv format"),
-                         downloadButton("downloadSelectedClin", "Download selected clinical data in .csv format"),
-                         h6("This application was created by the ", a("Xing Tang", href="https://scholar.google.com/citations?user=F9arEIMAAAAJ&hl=en"), 
-                            " from The Ohio State University. Please send bugs and feature requests to Xing Tang (tangx1986(at)gmail.com) or (tang.811(at)osu.edu). This application uses the ", 
-                            a("shiny package from RStudio", href="http://www.rstudio.com/shiny/"), ".")
+                         downloadButton("downloadSelectedClin", "Download selected clinical data in .csv format")
                 ),
                 # Data navigator tab
                 tabPanel("Data navigator",
@@ -219,12 +214,8 @@ shinyUI(pageWithSidebar(
                          ),
                          conditionalPanel(condition="input.DataNavStartDataType==3", 
                                           h4("Clinical information"),
-                                          tableOutput("ClinicalInfoTable")
-                         ),
-                         
-                         h6("This application was created by the ", a("Xing Tang", href="https://scholar.google.com/citations?user=F9arEIMAAAAJ&hl=en"), 
-                            " from The Ohio State University. Please send bugs and feature requests to Xing Tang (tangx1986(at)gmail.com) or (tang.811(at)osu.edu). This application uses the ", 
-                            a("shiny package from RStudio", href="http://www.rstudio.com/shiny/"), ".")
+                                          DT::dataTableOutput("ClinicalInfoTable")
+                         )
                 ),
                 
                 # Boxplot tab
@@ -256,10 +247,7 @@ shinyUI(pageWithSidebar(
                                           plotOutput("Clinheat", height='100%', width='100%'),
                                           h4("Download data"),
                                           downloadButton("downloadClinheatData", "Download data for heatmap in .csv format")
-                         ),
-                         
-                         h6("This application was created by ", a("Xing Tang", href="https://scholar.google.com/citations?user=F9arEIMAAAAJ&hl=en"), "from the Ohio State University. Please send bugs and feature requests to Xing (tangx1986(at)gmail.com) or (tang.811@osu.edu). This application uses the ", 
-                            a("shiny package from RStudio", href="http://www.rstudio.com/shiny/"), ".")
+                         )
                 ), 
                 
                 # Data analysis tab
@@ -273,28 +261,23 @@ shinyUI(pageWithSidebar(
                                           h4("Associated genes or clinical features"),
                                           tableOutput("analysisResTable"),
                                           downloadButton("dowloadAnalysisRes", "Download full table of significant genes as .CSV file")
-                         ),
-                         h6("This application was created by the ", a("Xing Tang", href="https://scholar.google.com/citations?user=F9arEIMAAAAJ&hl=en"), 
-                            " from The Ohio State University. Please send bugs and feature requests to Xing Tang (tangx1986(at)gmail.com) or (tang.811(at)osu.edu). This application uses the ", 
-                            a("shiny package from RStudio", href="http://www.rstudio.com/shiny/"), ".")
+                         )
                 ),
                 
                 # News
                 tabPanel("News",
                          h5("April 28, 2016"), 
-                         p("This is a test version"),
-                         h6("This application was created by the ", a("Xing Tang", href="https://scholar.google.com/citations?user=F9arEIMAAAAJ&hl=en"), 
-                            " from The Ohio State University. Please send bugs and feature requests to Xing Tang (tangx1986(at)gmail.com) or (tang.811(at)osu.edu). This application uses the ", 
-                            a("shiny package from RStudio", href="http://www.rstudio.com/shiny/"), ".")
+                         p("This is a test version")
                 ),			
                 
                 # FAQ 
                 tabPanel("FAQ",
-                         h6("This application was created by the ", a("Xing Tang", href="https://scholar.google.com/citations?user=F9arEIMAAAAJ&hl=en"), 
-                            " from The Ohio State University. Please send bugs and feature requests to Xing Tang (tangx1986(at)gmail.com) or (tang.811(at)osu.edu). This application uses the ", 
-                            a("shiny package from RStudio", href="http://www.rstudio.com/shiny/"), ".")
-                ) 
-    )
+                         "FAQ"
+                )
+    ),
+    h6("This application was created by the ", a("Xing Tang", href="https://scholar.google.com/citations?user=F9arEIMAAAAJ&hl=en"), 
+       " from The Ohio State University. Please send bugs and feature requests to Xing Tang (tangx1986(at)gmail.com) or (tang.811(at)osu.edu). This application uses the ", 
+       a("shiny package from RStudio", href="http://www.rstudio.com/shiny/"), ".")
   )
   )
   )

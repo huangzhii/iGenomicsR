@@ -1,6 +1,7 @@
 
 shinyServer(function(input, output, session) {
-  
+  library(data.table)
+  library(DT)
   library(RColorBrewer)
   library(GenomicRanges)
   library(ggplot2)
@@ -10,6 +11,7 @@ shinyServer(function(input, output, session) {
   #library("survplot")
   library("GGally")
   library("survival")
+  source("utils.R")
   source("my_heatmap.R")
   source("my_analysis.R")
   source("gene_filter.R")
@@ -54,6 +56,7 @@ shinyServer(function(input, output, session) {
   })
 
   summarize_dataUpload <- eventReactive(input$uploadSummaryButton, {
+    smartModal(error=F, title = "Summarizing Uploaded Data", content = "Summarizing uploaded data, please wait for a little while...")
     assign("DB", dataL(), envir = .GlobalEnv)
     d <- list()
     d[["dataTypes"]] <- c("Uploaded data types", paste(names(DB), collapse = ";"))
@@ -66,6 +69,7 @@ shinyServer(function(input, output, session) {
         d[[i]] <- c(paste("# of NA in", i), sum(toupper(DB[["Clinical"]][,i]) == "NA" | DB[["Clinical"]][,i]==""))
       }
     }
+    removeModal()
     return(t(as.data.frame(d)))
   })
   
@@ -89,6 +93,7 @@ shinyServer(function(input, output, session) {
   }, height = 500, width = 500)
   
   sampleSelection <- observeEvent(input$sampleSelectionButton, {
+    smartModal(F,"Selecting","Selecting samples shared by all subjects...")
     allDataTypes <- colnames(DB)
     if ("Clinical" %in% allDataTypes){
       samples <- rownames(DB[["Clinical"]])
@@ -113,6 +118,7 @@ shinyServer(function(input, output, session) {
     print(head(DB[["Clinical"]]))
     print(head(DB[["Clinical_cat_lab"]]))
     print(head(DB[["Clinical_quan_lab"]]))
+    removeModal()
   })
   
   CatClin <- reactive({
@@ -556,9 +562,10 @@ shinyServer(function(input, output, session) {
     plot(x, y, xlab=genes[1], ylab=genes[2], main="Protein expression", sub=paste("correlation:", corr))
   }, height = 500, width = 500)
   
-  output$ClinicalInfoTable <- renderTable({
-    DB[["Clinical"]]
-  },include.rownames=TRUE)
+  output$ClinicalInfoTable <- DT::renderDataTable({
+    DT::datatable(DB[["Clinical"]], extensions = 'Responsive', escape=F, selection = 'none', rownames = T)
+    
+  })
   
   get_all_clin <- reactive({
     DB <- dataL()
