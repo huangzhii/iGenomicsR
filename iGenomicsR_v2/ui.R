@@ -202,10 +202,11 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                     ),
                     br(),
                     tags$div(
-                      tags$img(src='images/iGPSeplus_logo.png',
+                      a(tags$img(src='images/iGPSeplus_logo.png',
                                height="40",
                                alt="iGenomicsR", class="center", style="padding: 5px"),
-                      br(),"Coming Soon",
+                        href="https://apps.medgen.iupui.edu/rsc/content/23/", target="_blank"),
+                      br(),a("iGPSe Plus: Integrative Genomic based Canser Patient Stratification", href="https://apps.medgen.iupui.edu/rsc/content/23/", target="_blank"),
                       style="text-align: center; padding: 5px"
                     ),
                     h4("Development Team", style="color: STEELBLUE; padding-bottom: 20px"),
