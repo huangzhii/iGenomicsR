@@ -128,9 +128,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                                          if(typeMessage == "tab2"){
                                                          $("a:contains(Data Navigator)").click();
                                                          }
-                                                         if(typeMessage == "tab3"){
-                                                         $("a:contains(Survival Analysis)").click();
-                                                         }
+
                                                          });
                                                          
                                                          // disable download at startup.
@@ -154,10 +152,247 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                     ) # end of sidebarLayout
                     
            ),
-           tabPanel("Data Navigator"
-                    
+           tabPanel("Data Navigator",
+                    navlistPanel(widths = c(2, 10),
+                                 tabPanel("Mutation",
+                                          sidebarLayout(
+                                            position = "right",
+                                            sidebarPanel(
+                                              h4("Mutations for Genes List", style="color: STEELBLUE"),
+                                              textAreaInput(inputId="genesToPullMutation",label="Paste genes here:",
+                                                            value = "PTEN, TP53, POLE", height = 200),
+                                              actionButton("action.navigator.mutation", "Run",style="color: WHITE; background-color: DODGERBLUE")
+                                            ),
+                                            mainPanel(
+                                              h4("Genes mutation profile association test results", style="color: STEELBLUE"),
+                                              DT::dataTableOutput("geneMutationTestResTable"),
+                                              downloadButton("dowloadGeneMutationTestRes", "Download full table of significant associations as .CSV file"),
+                                              h4("Mutations for genes you selected", style="color: STEELBLUE; padding-top: 10px"),
+                                              DT::dataTableOutput("selectedGeneMutationsTable")
+                                            )
+                                          )
+                                 ),
+                                 tabPanel("RNA expression",
+                                          sidebarLayout(
+                                            position = "right",
+                                            sidebarPanel(
+                                              h4("Input two genes to perform dot plot", style="color: STEELBLUE"),
+                                              fluidRow(
+                                                column(6, textInput(inputId="navigator.RNA.expression.gene.1",label="Gene 1:",
+                                                                   value = "PTEN")),
+                                                column(6, textInput(inputId="navigator.RNA.expression.gene.2",label="Gene 2:",
+                                                                    value = "TP53"))
+                                              ),
+                                              actionButton("action.navigator.RNA", "Plot",style="color: WHITE; background-color: DODGERBLUE")
+                                            ),
+                                            mainPanel(
+                                              h4("RNA expression dotplot", style="color: STEELBLUE"),
+                                              plotOutput("RNADotPlot", height='100%', width='100%')
+                                            )
+                                          )
+                                 ),
+                                 tabPanel("Protein expression",
+                                          sidebarLayout(
+                                            position = "right",
+                                            sidebarPanel(
+                                              h4("Input two genes to perform dot plot", style="color: STEELBLUE"),
+                                              fluidRow(
+                                                column(6, textInput(inputId="navigator.protein.expression.gene.1",label="Gene 1:",
+                                                                    value = "PTEN")),
+                                                column(6, textInput(inputId="navigator.protein.expression.gene.2",label="Gene 2:",
+                                                                    value = "ARID1B"))
+                                              ),
+                                              actionButton("action.navigator.protein", "Plot",style="color: WHITE; background-color: DODGERBLUE")
+                                            ),
+                                            mainPanel(
+                                              h4("Protein expression dotplot", style="color: STEELBLUE"),
+                                              plotOutput("ProteinDotPlot1", height='100%', width='100%')
+                                            )
+                                          )
+                                 ),
+                                 tabPanel("Clinical data",
+                                          h4("Clinical Information", style="color: STEELBLUE"),
+                                          DT::dataTableOutput("ClinicalInfoTable")
+                                 )
+                    )
            ),
-           tabPanel("Data Integration"
+           tabPanel("Data Integration",
+                    navlistPanel(widths = c(2, 10),
+                                 tabPanel("Mutation",
+                                          sidebarLayout(
+                                            position = "right",
+                                            sidebarPanel(
+                                              h3("Choose Method", style="color: STEELBLUE"),
+                                              h4("De novo identification of associated genes", style="color: STEELBLUE"),
+                                              actionButton("action.integration.mutation.denovo", "Run",style="color: WHITE; background-color: DODGERBLUE"),
+                                              
+                                              h4("Plot selected genes", style="color: STEELBLUE"),
+                                              textAreaInput(inputId="genesToPullMutation",label="Paste genes here:",
+                                                            value = "PTEN, TP53", height = 200),
+                                              actionButton("action.integration.mutation.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE"),
+                                              tags$hr(),
+                                              h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              prettyCheckbox(
+                                                inputId = "OncoPlotHasProtein", label = "Input genes to plot protein level", icon = icon("check")
+                                              ),
+                                              prettyCheckbox(
+                                                inputId = "OncoPlotHasRna", label = "Input genes to plot RNA level", icon = icon("check")
+                                              ),
+                                              prettyCheckbox(
+                                                inputId = "OncoPlotHasClin", label = "Select clinical data to plot", icon = icon("check")
+                                              )
+                                            ),
+                                            mainPanel(
+                                              h4("Onco plot", style="color: STEELBLUE"),
+                                              plotOutput("OncoPlot", height='100%', width='100%'),
+                                              h4("Download onco plot data", style="color: STEELBLUE"),
+                                              downloadButton("downloadOncoPlotData", "Download data for heatmap in .csv format")
+                                            )
+                                          )
+                                 ),
+                                 tabPanel("Image",
+                                          sidebarLayout(
+                                            position = "right",
+                                            sidebarPanel(
+                                              h4("ImageInputFeatures", style="color: STEELBLUE"),
+                                              textAreaInput(inputId="ImageInputFeatures", label="Paste features here",
+                                                            value="Fraction_Fiber, Nuclei_Density, Nuclei_Area", height = 200),
+                                              h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              prettyCheckbox("ImageheatHasMutation", "Input genes to plot mutation profile", FALSE, icon = icon("check")),
+                                              conditionalPanel(condition="input.ImageheatHasMutation==1",
+                                                               textInput("ImageInputMutations", "Paste genes here", "TP53")),
+                                              prettyCheckbox("ImageheatHasProtein", "Input genes to plot protein level", FALSE, icon = icon("check")),
+                                              conditionalPanel(condition="input.ImageheatHasProtein==1",
+                                                               textInput("ImageInputPriteins", "Paste genes here", "TP53")),
+                                              prettyCheckbox("ImageheatHasRna", "Input genes to plot RNA level", FALSE, icon = icon("check")),
+                                              conditionalPanel(condition="input.ImageheatHasRna==1",
+                                                               textInput("ImageInputRna", "Paste genes here", "PTEN, TP53")),
+                                              prettyCheckbox("ImageheatHasClin", "Select clinical data to plot", FALSE, icon = icon("check")),
+                                              conditionalPanel(condition="input.ImageheatHasClin",
+                                                               checkboxGroupInput('ImageheatClin', '', c(DB[["Clinical_cat_lab"]], DB[["Clinical_quan_lab"]]), 
+                                                                                  selected = "")
+                                              )
+                                            ),
+                                            mainPanel(
+                                              h4("Image heatmap", style="color: STEELBLUE"),
+                                              plotOutput("Imageheat", height='100%', width='100%'),
+                                              h4("Download image heatmap data", style="color: STEELBLUE"),
+                                              downloadButton("downloadImageheatData", "Download data for heatmap in .csv format")
+                                            )
+                                          )
+                                 ),
+                                 tabPanel("RNA expression",
+                                          sidebarLayout(
+                                            position = "right",
+                                            sidebarPanel(
+                                              h3("Choose Method", style="color: STEELBLUE"),
+                                              h4("De novo clustering of whole transcriptome", style="color: STEELBLUE"),
+                                              textInput("RNAheatGeneCutoff", "Gene filter criteria", "var > 0.95"),
+                                              helpText("eg. maxExp > 0.5 and var > 0.8 and cv > 0.5\nFilter order: maxExp, var, cv. Check FAQ for more detail."),
+                                              actionButton("action.integration.RNA.denovo", "Run",style="color: WHITE; background-color: DODGERBLUE"),
+                                              
+                                              h4("Clustering on selected genes", style="color: STEELBLUE"),
+                                              textAreaInput(inputId="RNAheatInputGenes",label="Paste genes here:",
+                                                            value = "PTEN, TP53", height = 200),
+                                              radioButtons("RNAheatClustMethod", "", list("hierarchical clustering"=0, "kmeans clustering"=1), 0),
+                                              actionButton("action.integration.RNA.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE"),
+                                              tags$hr(),
+                                              h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              prettyCheckbox(
+                                                inputId = "RNAheatHasProtein", label = "Input genes to plot protein level", icon = icon("check")
+                                              ),
+                                              prettyCheckbox(
+                                                inputId = "RNAheatHasMutation", label = "Input genes to plot RNA level", icon = icon("check")
+                                              ),
+                                              prettyCheckbox(
+                                                inputId = "RNAheatHasClin", label = "Select clinical data to plot", icon = icon("check")
+                                              ),
+                                              conditionalPanel(condition="input.RNAheatHasClin",
+                                                               checkboxGroupInput('RNAheatClin', '', c(DB[["Clinical_cat_lab"]], DB[["Clinical_quan_lab"]]), 
+                                                                                  selected = "")
+                                              )
+                                            ),
+                                            mainPanel(
+                                              h4("RNA heatmap", style="color: STEELBLUE"),
+                                              plotOutput("RNAheat", height='100%', width='100%'),
+                                              h4("RNA dendrogram", style="color: STEELBLUE"),
+                                              plotOutput("RNAdendro", height='100%', width='100%'),
+                                              h4("Download RNA heatmap data", style="color: STEELBLUE"),
+                                              downloadButton("downloadRNAheatData", "Download data for heatmap in .csv format")
+                                            )
+                                          )
+                                 ),
+                                 tabPanel("Protein expression",
+                                          sidebarLayout(
+                                            position = "right",
+                                            sidebarPanel(
+                                              h3("Choose Method", style="color: STEELBLUE"),
+                                              h4("De novo clustering of whole proteome", style="color: STEELBLUE"),
+                                              textInput("ProteinheatGeneCutoff", "Gene filter criteria", "var > 0.95"),
+                                              helpText("eg. maxExp > 0.5 and var > 0.8 and cv > 0.5\nFilter order: maxExp, var, cv. Check FAQ for more detail."),
+                                              actionButton("action.integration.protein.denovo", "Run",style="color: WHITE; background-color: DODGERBLUE"),
+                                              h4("Clustering of selected genes", style="color: STEELBLUE"),
+                                              textAreaInput(inputId="ProteinheatInputGenes",label="Paste genes here:",
+                                                            value = "PTEN, AATF", height = 200),
+                                              radioButtons("RNAheatClustMethod", "", list("hierarchical clustering"=0, "kmeans clustering"=1), 0),
+                                              actionButton("action.integration.protein.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE"),
+                                              
+                                              tags$hr(),
+                                              h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              prettyCheckbox("ProteinheatHasRNA", "Input genes to plot RNA level", FALSE, icon = icon("check")),
+                                              conditionalPanel(condition="input.ProteinheatHasRNA==1",
+                                                               textInput("ProteinheatInputRNA", "Paste genes here", "PTEN")),
+                                              prettyCheckbox("ProteinheatHasMutation", "Input genes to plot mutation", FALSE, icon = icon("check")),
+                                              conditionalPanel(condition="input.ProteinheatHasMutation==1",
+                                                               textInput("ProteinheatInputMutation", "Paste genes here", "PTEN, TP53")),
+                                              prettyCheckbox("ProteinheatHasClin", "Select clinical data to plot", FALSE, icon = icon("check")),
+                                              conditionalPanel(condition="input.ProteinheatHasClin",
+                                                               checkboxGroupInput('ProteinheatClin', '', c(DB[["Clinical_cat_lab"]], DB[["Clinical_quan_lab"]]), 
+                                                                                  selected = "")
+                                              )
+                                            ),
+                                            mainPanel(
+                                              h4("Protein heatmap", style="color: STEELBLUE"),
+                                              plotOutput("Proteinheat", height='100%', width='100%'),
+                                              h4("Protein Dentrogram", style="color: STEELBLUE"),
+                                              plotOutput("Proteindendro", height='100%', width='100%'),
+                                              h4("Download protein heatmap data", style="color: STEELBLUE"),
+                                              downloadButton("downloadProteinheatData", "Download data for heatmap in .csv format")
+                                            )
+                                          )
+                                 ),
+                                 tabPanel("Clinical data",
+                                          sidebarLayout(
+                                            position = "right",
+                                            sidebarPanel(
+                                              h3("Select clinical features to plot", style="color: STEELBLUE"),
+                                              h4("Please check following selctions:", style="color: STEELBLUE"),
+                                              checkboxGroupInput('ClinheatClin', '', c(DB[["Clinical_cat_lab"]], DB[["Clinical_quan_lab"]]), 
+                                                                 selected = c(DB[["Clinical_cat_lab"]], DB[["Clinical_quan_lab"]])),
+                                              
+                                              selectInput('ClinheatSelectOrderFeature', "Order samples by", c(DB[["Clinical_cat_lab"]], DB[["Clinical_quan_lab"]]), 
+                                                          selected = c(DB[["Clinical_cat_lab"]], DB[["Clinical_quan_lab"]])[1]),
+                                              tags$hr(),
+                                              h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              checkboxInput("ClinheatHasRNA", "Input genes to plot RNA level", FALSE),
+                                              conditionalPanel(condition="input.ClinheatHasRNA==1",
+                                                               textInput("ClinheatInputRNA", "Paste genes here", "PTEN, TP53")),
+                                              checkboxInput("ClinheatHasMutation", "Input genes to plot mutation", FALSE),
+                                              conditionalPanel(condition="input.ClinheatHasMutation==1",
+                                                               textInput("ClinheatInputMutation", "Paste genes here", "PTEN, TP53")),
+                                              checkboxInput("ClinheatHasProtein", "Input genes to plot protein", FALSE),
+                                              conditionalPanel(condition="input.ClinheatHasProtein==1",
+                                                               textInput("ClinheatInputProtein", "Paste genes here", "PTEN"))
+                                            ),
+                                            mainPanel(
+                                              h4("Clinical heatmap", style="color: STEELBLUE"),
+                                              plotOutput("Clinheat", height='100%', width='100%'),
+                                              h4("Download clinical heatmap data", style="color: STEELBLUE"),
+                                              downloadButton("downloadClinheatData", "Download data for heatmap in .csv format")
+                                            )
+                                          )
+                                 )
+                    )
                     
            ),
            tabPanel("Data Analysis"

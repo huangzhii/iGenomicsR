@@ -213,8 +213,67 @@ function(input, output, session) {
   })
   
   
+  ########################################################################
+  # Data navigator panel 
+  ########################################################################
   
+  observeEvent(input$action.navigator.mutation,{
+    
+    # output gene mutation test result
+    output$geneMutationTestResTable <- DT::renderDataTable({
+      # print(head(DB[["Mutation_gene"]]))
+      DB[["mutation_gene_test"]] <- run_gene_mutation_association(DB[["Mutation_gene"]])
+      # print(head(DB[["mutation_gene_test"]]))
+      d <- DB[["mutation_gene_test"]]
+      d[,"oddsRatio"] <- format(as.numeric(d[,"oddsRatio"]),nsmall=2, digits=2)
+      d[,"pvalue"] <- format(as.numeric(d[,"pvalue"]),scientific=TRUE, nsmall=2,digits=2)
+      d[,"adj_pvalue"] <- format(as.numeric(d[,"adj_pvalue"]),scientific=TRUE, nsmall=2,digits=2)
+      return(d)
+    },selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
+    
+    output$dowloadGeneMutationTestRes <- downloadHandler(
+      filename = function() { "mutation_gene_association_test.csv" },
+      content = function(file) {
+        write.csv(DB[["mutation_gene_test"]], file, row.names=FALSE)
+      })
+    
+    # output selected mutations
+    output$selectedGeneMutationsTable <- DT::renderDataTable({
+      DB[["Mutation_gene"]][unlist(strsplit(gsub(" ", "", input$genesToPullMutation), ",", fixed = TRUE)),]
+    },selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
+  })
   
+  observeEvent(input$action.navigator.RNA,{
+    output$RNADotPlot <- renderPlot({
+      genes <- c(input$navigator.RNA.expression.gene.1, input$navigator.RNA.expression.gene.2)
+      d <- DB[["RNA"]][genes,,drop=FALSE]
+      d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
+      x <- d[genes[1],,drop=TRUE]
+      y <- d[genes[2],,drop=TRUE]
+      corr <- cor(x, y)
+      plot(x, y, xlab=genes[1], ylab=genes[2], main="RNA expression", sub=paste("correlation:", corr))
+    }, height = 500, width = 500)
+  })
+  
+  observeEvent(input$action.navigator.protein,{
+    save(DB, file = "~/Desktop/DB.Rdata")
+    output$ProteinDotPlot1 <- renderPlot({
+      genes <- c(input$navigator.protein.expression.gene.1, input$navigator.protein.expression.gene.2)
+      d <- DB[["Protein"]][genes,,drop=FALSE]
+      d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
+      d <- apply(d, c(1,2), as.numeric)
+      x <- d[genes[1],,drop=TRUE]
+      y <- d[genes[2],,drop=TRUE]
+      corr <- cor(x, y)
+      plot(x, y, xlab=genes[1], ylab=genes[2], main="Protein expression", sub=paste("correlation:", corr))
+    }, height = 500, width = 500)
+    
+  })
+  output$ClinicalInfoTable <- DT::renderDataTable({
+    DT::datatable(DB[["Clinical"]], extensions = 'Responsive', escape=F, selection = 'none', rownames = T,
+                  options=list(searching=F, ordering=F))
+    
+  })
   
   
   

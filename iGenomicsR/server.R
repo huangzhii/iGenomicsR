@@ -543,7 +543,7 @@ shinyServer(function(input, output, session) {
   })
   output$RNADotPlot <- renderPlot({
     genes <- dotplot_RNA_genes()
-    d <- DB[["RNA"]][genes,,drop=FALSE]
+    d <- DB[["RNA"]][genes,drop=FALSE]
     d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
     x <- d[genes[1],,drop=TRUE]
     y <- d[genes[2],,drop=TRUE]
