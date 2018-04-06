@@ -191,10 +191,10 @@ shinyServer(function(input, output, session) {
   })
   
   OncoPlot_res <- reactive({
-    my_heatmap_mutation(mutation_genes=mutation_OncoPlotInputGenes(), 
-                        rna_genes=mutation_OncoPlotRna(), 
-                        protein_genes=mutation_OncoPlotProtein(), 
-                        clinical_lab=mutation_OncoPlotClinInfo(), 
+    my_heatmap_mutation(mutation_genes=mutation_OncoPlotInputGenes(),
+                        rna_genes=mutation_OncoPlotRna(),
+                        protein_genes=mutation_OncoPlotProtein(),
+                        clinical_lab=mutation_OncoPlotClinInfo(),
                         order_by="mutation")
   })
   

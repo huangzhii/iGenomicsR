@@ -197,11 +197,6 @@ function(input, output, session) {
       write.csv(DB[["Clinical"]], file, row.names=TRUE)
     }) ###
   
-  
-  ########################################################################
-  # mutation panel 
-  ########################################################################
-  
   observeEvent(input$action2,{
     if(!is.null(DB[["Mutation_gene"]]) & !is.null(DB[["RNA"]]) & !is.null(DB[["Protein"]]) & !is.null(DB[["Clinical"]])){
       session$sendCustomMessage("buttonCallbackHandler", "tab2")
@@ -275,6 +270,226 @@ function(input, output, session) {
     
   })
   
+  ########################################################################
+  # mutation panel 
+  ########################################################################
+  
+  
+  # Oncoplot
+  selectedClinFeature <- reactive({
+    SCF <- list()
+    for(i in c(CatClin(), QuanClin())){
+      SCF[[i]] <- i
+    }
+    return(SCF)
+  })
+  
+  output$OncoPlotClinUI <- renderUI({
+    if (!input$OncoPlotHasClin)
+      return()
+    checkboxGroupInput('OncoPlotClin', '', selectedClinFeature(), selected = "") 
+  })
+  
+  
+  observeEvent(input$action.integration.mutation.denovo,{
+    output$OncoPlot <- renderPlot({
+      OncoPlot_res <<- my_heatmap_mutation(mutation_genes = NULL, 
+                                           rna_genes = if(input$OncoPlotHasRna){
+                                             gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]])
+                                           }, 
+                                           protein_genes = if(input$OncoPlotHasProtein){
+                                             gsub("\\s","", strsplit(input$MutationInputPriteins,",")[[1]])
+                                           }, 
+                                           clinical_lab = input$OncoPlotClin, 
+                                           order_by="mutation")
+      return(OncoPlot_res[["plot"]])
+    }, height = input$myHeight1, width = input$myWidth1)
+    
+  })
+  
+  observeEvent(input$action.integration.mutation.inputgenes,{
+    output$OncoPlot <- renderPlot({
+      OncoPlot_res <<- my_heatmap_mutation(mutation_genes = gsub("\\s","", strsplit(input$MutationInputGenes,",")[[1]]), 
+                                           rna_genes = if(input$OncoPlotHasRna){
+                                             gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]])
+                                           }, 
+                                           protein_genes = if(input$OncoPlotHasProtein){
+                                             gsub("\\s","", strsplit(input$MutationInputPriteins,",")[[1]])
+                                           }, 
+                                           clinical_lab = input$OncoPlotClin, 
+                                           order_by="mutation")
+      return(OncoPlot_res[["plot"]])
+    }, height = input$myHeight1, width = input$myWidth1)
+    
+  })
+  
+  # download ordered data for heatmap
+  output$downloadOncoPlotData <- downloadHandler(
+    filename = function() { "data_ordered_by_mutation.csv" },
+    content = function(file) {
+      write.csv(OncoPlot_res[["table"]], file, row.names=TRUE)
+    }) ###
+  
+  
+  ########################################################################
+  # image panel 
+  ########################################################################
+  # Imageheat
+  
+  
+  
+  ########################################################################
+  # rna expression panel 
+  ########################################################################
+  # gene expression clustering and heatmap
+  observeEvent(input$action.integration.RNA.denovo,{
+    clust_para <- list()
+    clust_para[["method"]] <- "hc"
+    rna_RNAheatClustPara <- clust_para
+    RNAheat_res <<- my_heatmap_rna(mode = input$RNAheatIsInputGenes,
+                                   clust_para = rna_RNAheatClustPara,
+                                   mutation_genes = if(input$RNAheatHasMutation){
+                                     gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]])
+                                   }, 
+                                   protein_genes = if(input$RNAheatHasProtein){
+                                     gsub("\\s","", strsplit(input$RNAheatInputPriteins,",")[[1]])
+                                   }, 
+                                   clinical_lab=input$RNAheatClin,
+                                   rna_criteria = if(input$RNAheatIsInputGenes==1){
+                                     strsplit(input$RNAheatGeneCutoff,"and")[[1]]
+                                   },
+                                   rna_genes = if(input$RNAheatIsInputGenes==0){
+                                     gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])
+                                   })
+    output$RNAheat <- renderPlot({
+      return(RNAheat_res[["plot"]])
+    }, height = input$myHeight3, width = input$myWidth3)
+  })
+  
+  observeEvent(input$action.integration.RNA.inputgenes,{
+    clust_para <- list()
+    clust_para[["method"]] <- c("hc", "km")[as.numeric(input$RNAheatClustMethod) + 1]
+    if(clust_para[["method"]] == "km"){
+      clust_para[["k"]] <- as.numeric(input$RNAheatKmeansK)
+    }
+    rna_RNAheatClustPara <- clust_para
+    RNAheat_res <<- my_heatmap_rna(mode = input$RNAheatIsInputGenes,
+                                   clust_para = rna_RNAheatClustPara,
+                                   mutation_genes = if(input$RNAheatHasMutation){
+                                     gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]])
+                                   }, 
+                                   protein_genes = if(input$RNAheatHasProtein){
+                                     gsub("\\s","", strsplit(input$RNAheatInputPriteins,",")[[1]])
+                                   }, 
+                                   clinical_lab=input$RNAheatClin,
+                                   rna_criteria = if(input$RNAheatIsInputGenes==1){
+                                     strsplit(input$RNAheatGeneCutoff,"and")[[1]]
+                                   },
+                                   rna_genes = if(input$RNAheatIsInputGenes==0){
+                                     gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])
+                                   })
+    output$RNAheat <- renderPlot({
+      return(RNAheat_res[["plot"]])
+    }, height = input$myHeight3, width = input$myWidth3)
+    
+    # gene clustering dendrogram
+    output$RNAdendro <- renderPlot({
+      if((clust_para[["method"]] == "hc")){
+        plot(RNAheat_res[["sample_order_res"]][["hc"]], cex=0.5)
+      }
+    }, height = input$myHeight3, width = input$myWidth3)
+  })
+  
+  # download ordered data for heatmap
+  output$downloadRNAheatData <- downloadHandler(
+    filename = function() { "data_ordered_by_rna.csv" },
+    content = function(file) {
+      write.csv(RNAheat_res[["table"]], 
+                file, row.names=TRUE)
+    }) ###
+  
+  
+  ########################################################################
+  # protein panel 
+  ########################################################################
+  # plot heatmap order by protein
+  observeEvent(input$action.integration.protein.denovo,{
+    Proteinheat_res <<- my_heatmap_protein(mode=input$ProteinheatIsInputGenes,
+                                           mutation_genes=if(input$ProteinheatHasMutation){
+                                             gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]])
+                                           }, 
+                                           rna_genes=if(input$ProteinheatHasRNA){
+                                             gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]])
+                                           }, 
+                                           clinical_lab=input$ProteinheatClin,
+                                           protein_criteria = strsplit(input$ProteinheatGeneCutoff,"and")[[1]], 
+                                           protein_genes = NULL)
+    output$Proteinheat <- renderPlot({
+      Proteinheat_res[["plot"]]
+    }, height = input$myHeight4, width = input$myWidth4)
+    # gene clustering dendrogram
+    output$Proteindendro <- renderPlot({
+      plot(Proteinheat_res[["sample_order_res"]][["hc"]], cex=0.5)
+    }, height = input$myHeight4, width = input$myWidth4)
+  })
+  
+  observeEvent(input$action.integration.protein.inputgenes,{
+    Proteinheat_res <<- my_heatmap_protein(mode=input$ProteinheatIsInputGenes,
+                                           mutation_genes=if(input$ProteinheatHasMutation){
+                                             gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]])
+                                           }, 
+                                           rna_genes=if(input$ProteinheatHasRNA){
+                                             gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]])
+                                           }, 
+                                           clinical_lab=input$ProteinheatClin,
+                                           protein_criteria = NULL, 
+                                           protein_genes = gsub("\\s","", strsplit(input$ProteinheatInputGenes,",")[[1]]))
+    output$Proteinheat <- renderPlot({
+      Proteinheat_res[["plot"]]
+    }, height = input$myHeight4, width = input$myWidth4)
+    # gene clustering dendrogram
+    output$Proteindendro <- renderPlot({
+      plot(Proteinheat_res[["sample_order_res"]][["hc"]], cex=0.5)
+    }, height = input$myHeight4, width = input$myWidth4)
+    
+  })
+  
+  # download ordered data for heatmap
+  output$downloadProteinheatData <- downloadHandler(
+    filename = function() { "data_ordered_by_protein.csv" },
+    content = function(file) {
+      write.csv(Proteinheat_res[["table"]], 
+                file, row.names=TRUE)
+    }) ###
+  
+  
+  ########################################################################
+  # Clinical panel 
+  ########################################################################
+  # plot heatmap order by clinical feature
+  observeEvent(input$action.integration.clinical,{
+    Clinheat_res <<- my_heatmap_mutation(mutation_genes = if(input$ClinheatHasMutation){
+                            gsub("\\s","", strsplit(input$ClinheatInputMutation,",")[[1]])
+                          },
+                          rna_genes = if(input$ClinheatHasRNA){
+                            gsub("\\s","", strsplit(input$ClinheatInputRNA,",")[[1]])
+                          },
+                          protein_genes = if(input$ClinheatHasProtein){
+                            gsub("\\s","", strsplit(input$ClinheatInputProtein,",")[[1]])
+                          },
+                          clinical_lab = input$ClinheatClin,
+                          order_by = "clinical",
+                          order_clin_feature = input$ClinheatSelectOrderFeature)
+    output$Clinheat <- renderPlot({
+      Clinheat_res[["plot"]]
+    }, height = input$myHeight5, width = input$myWidth5)
+  })
+  # download ordered data for heatmap
+  output$downloadClinheatData <- downloadHandler(
+    filename = function() { "data_ordered_by_clinical.csv" },
+    content = function(file) {
+      write.csv( Clinheat_res[["table"]], file, row.names=TRUE)
+    }) ###
   
   
 }
