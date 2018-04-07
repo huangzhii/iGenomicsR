@@ -291,35 +291,19 @@ function(input, output, session) {
   })
   
   
-  observeEvent(input$action.integration.mutation.denovo,{
-    output$OncoPlot <- renderPlot({
-      OncoPlot_res <<- my_heatmap_mutation(mutation_genes = NULL, 
-                                           rna_genes = if(input$OncoPlotHasRna){
-                                             gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]])
-                                           }, 
-                                           protein_genes = if(input$OncoPlotHasProtein){
-                                             gsub("\\s","", strsplit(input$MutationInputPriteins,",")[[1]])
-                                           }, 
-                                           clinical_lab = input$OncoPlotClin, 
-                                           order_by="mutation")
-      return(OncoPlot_res[["plot"]])
-    }, height = input$myHeight1, width = input$myWidth1)
-    
-  })
-  
   observeEvent(input$action.integration.mutation.inputgenes,{
     output$OncoPlot <- renderPlot({
-      OncoPlot_res <<- my_heatmap_mutation(mutation_genes = gsub("\\s","", strsplit(input$MutationInputGenes,",")[[1]]), 
+      OncoPlot_res <<- my_heatmap_mutation(mutation_genes = gsub("\\s","", strsplit(input$MutationInputGenes,",")[[1]]),
                                            rna_genes = if(input$OncoPlotHasRna){
                                              gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]])
-                                           }, 
+                                           },
                                            protein_genes = if(input$OncoPlotHasProtein){
                                              gsub("\\s","", strsplit(input$MutationInputPriteins,",")[[1]])
-                                           }, 
-                                           clinical_lab = input$OncoPlotClin, 
+                                           },
+                                           clinical_lab = input$OncoPlotClin,
                                            order_by="mutation")
       return(OncoPlot_res[["plot"]])
-    }, height = input$myHeight1, width = input$myWidth1)
+    })
     
   })
   

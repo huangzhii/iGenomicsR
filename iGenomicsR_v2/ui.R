@@ -159,7 +159,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                             position = "right",
                                             sidebarPanel(
                                               h4("Mutations for Genes List", style="color: STEELBLUE"),
-                                              textAreaInput(inputId="genesToPullMutation",label="Paste genes here:",
+                                              textAreaInput(inputId="MutationInputGenes",label="Paste genes here:",
                                                             value = "PTEN, TP53, POLE", height = 200),
                                               actionButton("action.navigator.mutation", "Run",style="color: WHITE; background-color: DODGERBLUE")
                                             ),
@@ -222,9 +222,9 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                           sidebarLayout(
                                             position = "right",
                                             sidebarPanel(
-                                              h3("Choose Method", style="color: STEELBLUE"),
-                                              h4("De novo identification of associated genes", style="color: STEELBLUE"),
-                                              actionButton("action.integration.mutation.denovo", "Run",style="color: WHITE; background-color: DODGERBLUE"),
+                                              # h3("Choose Method", style="color: STEELBLUE"),
+                                              # h4("De novo identification of associated genes", style="color: STEELBLUE"),
+                                              # actionButton("action.integration.mutation.denovo", "Run",style="color: WHITE; background-color: DODGERBLUE"),
                                               
                                               h4("Plot selected genes", style="color: STEELBLUE"),
                                               textAreaInput(inputId="genesToPullMutation",label="Paste genes here:",
