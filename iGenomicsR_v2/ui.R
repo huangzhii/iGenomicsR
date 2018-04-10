@@ -229,18 +229,22 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               h4("Plot selected genes", style="color: STEELBLUE"),
                                               textAreaInput(inputId="genesToPullMutation",label="Paste genes here:",
                                                             value = "PTEN, TP53", height = 200),
-                                              actionButton("action.integration.mutation.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE"),
                                               tags$hr(),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
                                               prettyCheckbox(inputId = "OncoPlotHasProtein", label = "Input genes to plot protein level", icon = icon("check")),
+                                              conditionalPanel(condition="input.OncoPlotHasProtein==1",
+                                                               textInput("MutationInputProteins", "Paste genes here", "PTEN")),
                                               prettyCheckbox(inputId = "OncoPlotHasRna", label = "Input genes to plot RNA level", icon = icon("check")),
+                                              conditionalPanel(condition="input.OncoPlotHasRna==1",
+                                                               textInput("MutationInputRna", "Paste genes here", "PTEN, TP53")),
                                               prettyCheckbox(inputId = "OncoPlotHasClin", label = "Select clinical data to plot", icon = icon("check")),
                                               conditionalPanel(condition="input.OncoPlotHasClin",
                                                                uiOutput("OncoPlotClinUI")
                                               ),
                                               tags$hr(),
                                               sliderInput(inputId="myHeight1", label="Plot height:", min=200, max=2000, value=800),
-                                              sliderInput(inputId="myWidth1", label="Plot width:", min=200, max=2000, value=1200)
+                                              sliderInput(inputId="myWidth1", label="Plot width:", min=200, max=2000, value=800),
+                                              actionButton("action.integration.mutation.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE")
                                             ),
                                             mainPanel(
                                               h4("Onco plot", style="color: STEELBLUE"),
@@ -274,7 +278,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               ),
                                               tags$hr(),
                                               sliderInput(inputId="myHeight2", label="Plot height:", min=200, max=2000, value=800),
-                                              sliderInput(inputId="myWidth2", label="Plot width:", min=200, max=2000, value=1200)
+                                              sliderInput(inputId="myWidth2", label="Plot width:", min=200, max=2000, value=800)
                                             ),
                                             mainPanel(
                                               h4("Image heatmap", style="color: STEELBLUE"),
@@ -304,14 +308,18 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               tags$hr(),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
                                               prettyCheckbox(inputId = "RNAheatHasProtein", label = "Input genes to plot protein level", icon = icon("check")),
+                                              conditionalPanel(condition="input.RNAheatHasProtein==1",
+                                                               textInput("RNAheatInputProteins", "Paste genes here", "PTEN")),
                                               prettyCheckbox(inputId = "RNAheatHasMutation", label = "Input genes to plot RNA level", icon = icon("check")),
+                                              conditionalPanel(condition="input.RNAheatHasMutation==1",
+                                                               textInput("RNAheatInputMutation", "Paste genes here", "PTEN, TP53")),
                                               prettyCheckbox(inputId = "RNAheatHasClin", label = "Select clinical data to plot", icon = icon("check")),
                                               conditionalPanel(condition="input.RNAheatHasClin",
                                                                checkboxGroupInput('RNAheatClin', '', c(DB[["Clinical_cat_lab"]], DB[["Clinical_quan_lab"]]), 
                                                                                   selected = "")),
                                               tags$hr(),
                                               sliderInput(inputId="myHeight3", label="Plot height:", min=200, max=2000, value=800),
-                                              sliderInput(inputId="myWidth3", label="Plot width:", min=200, max=2000, value=1200)
+                                              sliderInput(inputId="myWidth3", label="Plot width:", min=200, max=2000, value=800)
                                             ),
                                             mainPanel(
                                               h4("RNA heatmap", style="color: STEELBLUE"),
@@ -352,7 +360,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               ),
                                               tags$hr(),
                                               sliderInput(inputId="myHeight4", label="Plot height:", min=200, max=2000, value=800),
-                                              sliderInput(inputId="myWidth4", label="Plot width:", min=200, max=2000, value=1200)
+                                              sliderInput(inputId="myWidth4", label="Plot width:", min=200, max=2000, value=800)
                                             ),
                                             mainPanel(
                                               h4("Protein Heatmap", style="color: STEELBLUE"),
@@ -389,7 +397,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               actionButton("action.integration.clinical", "Run",style="color: WHITE; background-color: DODGERBLUE"),
                                               tags$hr(),
                                               sliderInput(inputId="myHeight5", label="Plot height:", min=200, max=2000, value=800),
-                                              sliderInput(inputId="myWidth5", label="Plot width:", min=200, max=2000, value=1200)
+                                              sliderInput(inputId="myWidth5", label="Plot width:", min=200, max=2000, value=800)
                                               
                                             ),
                                             mainPanel(

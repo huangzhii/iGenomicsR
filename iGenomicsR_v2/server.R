@@ -292,18 +292,28 @@ function(input, output, session) {
   
   
   observeEvent(input$action.integration.mutation.inputgenes,{
+    print(JS('window.innerWidth'))
+    OncoPlot_res <<- my_heatmap_mutation(mutation_genes = gsub("\\s","", strsplit(input$genesToPullMutation,",")[[1]]),
+                                         rna_genes = if(input$OncoPlotHasRna){
+                                           gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]])
+                                         },
+                                         protein_genes = if(input$OncoPlotHasProtein){
+                                           gsub("\\s","", strsplit(input$MutationInputProteins,",")[[1]])
+                                         },
+                                         clinical_lab = input$OncoPlotClin,
+                                         order_by="mutation")
+    # save(OncoPlot_res, file= "~/Desktop/oncoplot.Rdata")
+    height_of_plot <- length(gsub("\\s","", strsplit(input$genesToPullMutation,",")[[1]])) +
+      length(input$OncoPlotClin)
+     if(input$OncoPlotHasRna){
+       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]]))
+     }
+     if(input$OncoPlotHasProtein){
+       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$MutationInputProteins,",")[[1]]))
+     }
     output$OncoPlot <- renderPlot({
-      OncoPlot_res <<- my_heatmap_mutation(mutation_genes = gsub("\\s","", strsplit(input$MutationInputGenes,",")[[1]]),
-                                           rna_genes = if(input$OncoPlotHasRna){
-                                             gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]])
-                                           },
-                                           protein_genes = if(input$OncoPlotHasProtein){
-                                             gsub("\\s","", strsplit(input$MutationInputPriteins,",")[[1]])
-                                           },
-                                           clinical_lab = input$OncoPlotClin,
-                                           order_by="mutation")
       return(OncoPlot_res[["plot"]])
-    })
+    }, width=input$myWidth1, height=input$myHeight1/20*height_of_plot)
     
   })
   
@@ -330,21 +340,18 @@ function(input, output, session) {
     clust_para <- list()
     clust_para[["method"]] <- "hc"
     rna_RNAheatClustPara <- clust_para
-    RNAheat_res <<- my_heatmap_rna(mode = input$RNAheatIsInputGenes,
+    RNAheat_res <<- my_heatmap_rna(mode = 1, #denovo
                                    clust_para = rna_RNAheatClustPara,
                                    mutation_genes = if(input$RNAheatHasMutation){
                                      gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]])
                                    }, 
                                    protein_genes = if(input$RNAheatHasProtein){
-                                     gsub("\\s","", strsplit(input$RNAheatInputPriteins,",")[[1]])
+                                     gsub("\\s","", strsplit(input$RNAheatInputProteins,",")[[1]])
                                    }, 
                                    clinical_lab=input$RNAheatClin,
-                                   rna_criteria = if(input$RNAheatIsInputGenes==1){
-                                     strsplit(input$RNAheatGeneCutoff,"and")[[1]]
-                                   },
-                                   rna_genes = if(input$RNAheatIsInputGenes==0){
-                                     gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])
-                                   })
+                                   rna_criteria = strsplit(input$RNAheatGeneCutoff,"and")[[1]],
+                                   rna_genes = NULL
+                                   )
     output$RNAheat <- renderPlot({
       return(RNAheat_res[["plot"]])
     }, height = input$myHeight3, width = input$myWidth3)
@@ -357,21 +364,18 @@ function(input, output, session) {
       clust_para[["k"]] <- as.numeric(input$RNAheatKmeansK)
     }
     rna_RNAheatClustPara <- clust_para
-    RNAheat_res <<- my_heatmap_rna(mode = input$RNAheatIsInputGenes,
+    RNAheat_res <<- my_heatmap_rna(mode = 0, # gene lists
                                    clust_para = rna_RNAheatClustPara,
                                    mutation_genes = if(input$RNAheatHasMutation){
                                      gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]])
                                    }, 
                                    protein_genes = if(input$RNAheatHasProtein){
-                                     gsub("\\s","", strsplit(input$RNAheatInputPriteins,",")[[1]])
+                                     gsub("\\s","", strsplit(input$RNAheatInputProteins,",")[[1]])
                                    }, 
                                    clinical_lab=input$RNAheatClin,
-                                   rna_criteria = if(input$RNAheatIsInputGenes==1){
-                                     strsplit(input$RNAheatGeneCutoff,"and")[[1]]
-                                   },
-                                   rna_genes = if(input$RNAheatIsInputGenes==0){
-                                     gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])
-                                   })
+                                   rna_criteria = NULL,
+                                   rna_genes = gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])
+                                   )
     output$RNAheat <- renderPlot({
       return(RNAheat_res[["plot"]])
     }, height = input$myHeight3, width = input$myWidth3)

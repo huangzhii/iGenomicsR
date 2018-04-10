@@ -1,6 +1,6 @@
 options(stringsAsFactors = FALSE)
-library("ggplot2")
-library("reshape2")
+library(ggplot2)
+library(reshape2)
 library(cowplot)
 
 bin2dec <- function(x){
@@ -92,8 +92,13 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   PL <- list()
   plot_heights <- vector()
   my_theme <- theme(axis.ticks = element_blank(), axis.text.x = element_blank(),
-          plot.margin=unit(c(-0.3,0,-0.3,0), "cm"),
-          legend.key.size=unit(0.5, "cm"))
+                    plot.margin=unit(c(-0.3,0,-0.3,0), "cm"),
+                    # legend.key.size=unit(0.5, "cm"),
+                    legend.direction = "horizontal",
+                    legend.position = "right", #("none", "left", "right", "bottom", "top", or two-element numeric vector)
+                    legend.box = "horizontal",
+                    legend.title = element_blank()
+  )
   
   res <- list()
   # heatmap for image feature
@@ -107,7 +112,8 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     image[["Var1"]] <- factor(image[["Var1"]], levels=image_features, ordered = TRUE)
     PL[["image_plot"]] <- ggplot(image,  aes(Var2, Var1)) + 
       geom_tile(aes(fill = value)) + 
-      scale_fill_gradient2(low = "green" , mid="black", high = "red", breaks=seq(-2,2,0.1)) +
+      scale_fill_gradient2(low = "green" , mid="black", high = "red", breaks=seq(min(image$value),max(image$value),0.5)) +
+      guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
       theme_bw() + my_theme +
       labs(x="", y="")
     plot_heights <- c(plot_heights, length(image_features))
@@ -127,11 +133,9 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     if(rna_size == 1){
       PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
         geom_tile(aes(fill = value)) + 
-        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=seq(-2,2,0.1)) +
-        theme_bw() + labs(x="", y="") +
-        theme(axis.ticks = element_blank(), axis.text.x = element_blank(),
-              plot.margin=unit(c(0.3,0,-0.3,0), "cm"),
-              legend.key.size=unit(0.5, "cm"))
+        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=seq(min(rna$value),max(rna$value),0.5)) +
+        guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
+        theme_bw() + my_theme + labs(x="", y="")
       plot_heights <- c(plot_heights, length(rna_genes) * 0.5)
       
       if(clust_para[["method"]]=="km"){
@@ -146,11 +150,9 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     } else {
       PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
         geom_tile(aes(fill = value)) + 
-        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=seq(-2,2,0.1)) +
-        theme_bw() + labs(x="", y="") +
-        theme(axis.ticks = element_blank(), axis.text = element_blank(),
-              plot.margin=unit(c(0.3,0,-0.3,0), "cm"),
-              legend.key.size=unit(0.5, "cm"))
+        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=seq(min(rna$value),max(rna$value),0.5)) +
+        guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
+        theme_bw() + labs(x="", y="") + my_theme
       plot_heights <- c(plot_heights, length(rna_genes) * rna_size)
       
       d <- data.frame(patient_id=ordered_samples, divide_patients_by_cuttree(sample_order_res[["hc"]])[ordered_samples,])
@@ -174,7 +176,7 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     mutations[["Var2"]] <- factor(mutations[["Var2"]], levels=mutation_genes, ordered = TRUE)
     mutations[["Var1"]] <- factor(mutations[["Var1"]], levels=ordered_samples, ordered = TRUE)
     PL[["mutation_plot"]] <- ggplot(mutations, aes(Var1, Var2)) + 
-      geom_tile(aes(fill = value), colour = "white") +
+      geom_tile(aes(fill = value), colour = "grey50") +
       scale_fill_manual(values = c("white","steelblue")) +
       theme_bw() + my_theme +
       labs(x="", y="")
@@ -194,7 +196,8 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     protein[["Var1"]] <- factor(protein[["Var1"]], levels=protein_genes, ordered = TRUE)
     PL[["protein_plot"]] <- ggplot(protein,  aes(Var2, Var1)) + 
       geom_tile(aes(fill = value)) + 
-      scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=seq(-2,2,0.1)) +
+      scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(protein$value),max(protein$value),0.5), digits=2)) +
+      guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
       theme_bw() + my_theme +
       labs(x="", y="")
     plot_heights <- c(plot_heights, length(protein_genes))
