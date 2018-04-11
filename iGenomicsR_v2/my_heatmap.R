@@ -139,7 +139,7 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
         scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
         guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
         theme_bw() + my_theme + labs(x="", y="")
-      plot_heights <- c(plot_heights, length(rna_genes) * 50)# 0.5)
+      plot_heights <- c(plot_heights, length(rna_genes) * 5)# 0.5)
       
       if(clust_para[["method"]]=="km"){
         print("--- 3 ---")
