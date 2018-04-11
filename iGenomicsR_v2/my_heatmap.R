@@ -74,7 +74,7 @@ fun_order_samples <- function(mutation_genes, rna_genes, protein_genes, clinical
 ########################################################################
 # mutation based 
 ########################################################################
-my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinical_lab, order_by, rna_size=1, selected_samples=colnames(DB[["RNA"]]), clust_para=list(method="hc"), order_clin_feature, image_features=vector()){
+my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinical_lab, order_by, rna_size=1, protein_size = 1, selected_samples=colnames(DB[["RNA"]]), clust_para=list(method="hc"), order_clin_feature, image_features=vector(), show.RNA.name = 1, show.protein.name = 1){
   
   sample_order_res <- fun_order_samples(mutation_genes, rna_genes, protein_genes, clinical_lab, order_by, selected_samples, clust_para,order_clin_feature, image_features)
   ordered_samples <- sample_order_res[["ordered_samples"]] 
@@ -92,7 +92,8 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   PL <- list()
   plot_heights <- vector()
   my_theme <- theme(axis.ticks = element_blank(), axis.text.x = element_blank(),
-                    plot.margin=unit(c(-0.3,0,-0.3,0), "cm"),
+                    axis.text=element_text(size=12),
+                    plot.margin=unit(c(0,0,-0.3,0), "cm"),
                     # legend.key.size=unit(0.5, "cm"),
                     legend.direction = "horizontal",
                     legend.position = "right", #("none", "left", "right", "bottom", "top", or two-element numeric vector)
@@ -112,7 +113,7 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     image[["Var1"]] <- factor(image[["Var1"]], levels=image_features, ordered = TRUE)
     PL[["image_plot"]] <- ggplot(image,  aes(Var2, Var1)) + 
       geom_tile(aes(fill = value)) + 
-      scale_fill_gradient2(low = "green" , mid="black", high = "red", breaks=seq(min(image$value),max(image$value),0.5)) +
+      scale_fill_gradient2(low = "green" , mid="black", high = "red", breaks=round(seq(min(image$value),max(image$value),(max(image$value)-min(image$value))/5), digits=1)) +
       guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
       theme_bw() + my_theme +
       labs(x="", y="")
@@ -120,6 +121,7 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   }
   # heatmap for RNA
   if(length(rna_genes) >0 ){
+    print("--- 1 ---")
     res[["rna_data"]] <- t(DB[["RNA"]][rna_genes,ordered_samples,drop=FALSE])
     colnames(res[["rna_data"]]) <- paste("rna_", colnames(res[["rna_data"]]), sep="")
     rna <- t(apply(DB[["RNA"]][rna_genes,ordered_samples,drop=FALSE], 1, scale))
@@ -131,14 +133,16 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     rna[["value"]][ rna[["value"]] < -2] <- -2
     
     if(rna_size == 1){
+      print("--- 2 ---")
       PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
         geom_tile(aes(fill = value)) + 
-        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=seq(min(rna$value),max(rna$value),0.5)) +
+        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
         guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
         theme_bw() + my_theme + labs(x="", y="")
-      plot_heights <- c(plot_heights, length(rna_genes) * 0.5)
+      plot_heights <- c(plot_heights, length(rna_genes) * 50)# 0.5)
       
       if(clust_para[["method"]]=="km"){
+        print("--- 3 ---")
         d <- data.frame(patient_id=ordered_samples, cluster=paste("G",sort(sample_order_res[["cluster"]]), sep=""))
         res[["rna_group"]] <- d[,"cluster",drop=FALSE]
         d[["patient_id"]] <- factor(d[["patient_id"]], levels=ordered_samples, ordered = TRUE)
@@ -148,11 +152,22 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
         plot_heights <- c(plot_heights, 0.2)
       }
     } else {
+      print("--- 4 ---")
+      if(show.RNA.name == 1){
       PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
         geom_tile(aes(fill = value)) + 
-        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=seq(min(rna$value),max(rna$value),0.5)) +
+        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
         guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
-        theme_bw() + labs(x="", y="") + my_theme
+        theme_bw() + labs(x="", y="") + my_theme + theme(plot.margin=unit(c(0,0,0,0), "cm"))
+      }
+      else{
+        PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
+          geom_tile(aes(fill = value)) + 
+          scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
+          guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
+          theme_bw() + labs(x="", y="") + my_theme + theme(plot.margin=unit(c(0,0,0,0), "cm")) +
+          theme(axis.text.y = element_blank())
+      }
       plot_heights <- c(plot_heights, length(rna_genes) * rna_size)
       
       d <- data.frame(patient_id=ordered_samples, divide_patients_by_cuttree(sample_order_res[["hc"]])[ordered_samples,])
@@ -186,6 +201,7 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   
   # heatmap for protein
   if(length(protein_genes)>0){
+    print("--- 5 ---")
     # plot both epithelial expression and stroma expression
     protein <- DB[["Protein"]][protein_genes,ordered_samples,drop=FALSE]
     res[["protein_data"]] <- t(protein)
@@ -194,13 +210,27 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     protein <- melt(protein)
     protein[["Var2"]] <- factor(protein[["Var2"]], levels=ordered_samples, ordered = TRUE)
     protein[["Var1"]] <- factor(protein[["Var1"]], levels=protein_genes, ordered = TRUE)
-    PL[["protein_plot"]] <- ggplot(protein,  aes(Var2, Var1)) + 
-      geom_tile(aes(fill = value)) + 
-      scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(protein$value),max(protein$value),0.5), digits=2)) +
-      guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
-      theme_bw() + my_theme +
-      labs(x="", y="")
-    plot_heights <- c(plot_heights, length(protein_genes))
+    
+    if(show.protein.name == 1){
+      print("--- 6 ---")
+      PL[["protein_plot"]] <- ggplot(protein,  aes(Var2, Var1)) + 
+        geom_tile(aes(fill = value)) + 
+        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(protein$value),max(protein$value),(max(protein$value)-min(protein$value))/5), digits=1)) +
+        guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
+        theme_bw() + my_theme +
+        labs(x="", y="") + theme(plot.margin=unit(c(0,0,0,0), "cm"))
+    }
+    else{
+      print("--- 7 ---")
+      PL[["protein_plot"]] <- ggplot(protein,  aes(Var2, Var1)) + 
+        geom_tile(aes(fill = value)) + 
+        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(protein$value),max(protein$value),(max(protein$value)-min(protein$value))/5), digits=1)) +
+        guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
+        theme_bw() + my_theme +
+        labs(x="", y="") + theme(plot.margin=unit(c(0,0,0,0), "cm")) +
+        theme(axis.text.y = element_blank())
+    }
+    plot_heights <- c(plot_heights, length(protein_genes)*protein_size)
   }
   
   res[["clin_data"]] <- DB[["Clinical"]][ordered_samples,clinical_lab, drop=FALSE]
@@ -259,7 +289,7 @@ parse_criteria <- function(rules){
   }
   to_return
 }
-my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, protein_genes, clinical_lab, rna_criteria, rna_genes){
+my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, protein_genes, clinical_lab, rna_criteria, rna_genes, show.RNA.name = 1, show.protein.name = 1){
   rna_samples <- colnames(DB[["RNA"]])[!apply(DB[["RNA"]], 2, function(x){all(is.na(x))})]
   
   # order by user specified genes
@@ -267,7 +297,7 @@ my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, p
     my_heatmap_mutation(mutation_genes=mutation_genes, rna_genes=rna_genes, 
                         protein_genes=protein_genes, clinical_lab=clinical_lab, 
                         order_by="rna", selected_samples = rna_samples,
-                        clust_para=clust_para)
+                        clust_para=clust_para, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
   } else {
     rna_genes <- rownames(DB[["RNA"]])
     maxExp_filters <- rna_criteria[grep("maxExp", rna_criteria)]
@@ -291,7 +321,7 @@ my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, p
     my_heatmap_mutation(mutation_genes=mutation_genes, rna_genes=rna_genes, 
                         protein_genes=protein_genes, clinical_lab=clinical_lab, 
                         order_by="rna", rna_size=0.01, selected_samples = rna_samples,
-                        clust_para=clust_para)
+                        clust_para=clust_para, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
   }
 }
 
@@ -307,14 +337,14 @@ divide_patients_by_cuttree <- function(hclust_tree){
 ########################################################################
 # protein based
 ########################################################################
-my_heatmap_protein <- function(mode, mutation_genes, rna_genes, clinical_lab, protein_criteria, protein_genes){
+my_heatmap_protein <- function(mode, mutation_genes, rna_genes, clinical_lab, protein_criteria, protein_genes, show.RNA.name=1, show.protein.name = 1){
   protein_samples <- colnames(DB[["Protein"]])[!apply(DB[["Protein"]], 2, function(x){any(is.na(x))})]
   print(length(protein_samples))
   # order by user specified genes
   if(mode==0){
     my_heatmap_mutation(mutation_genes=mutation_genes, protein_genes=protein_genes, 
-                        rna_genes=rna_genes, clinical_lab=clinical_lab, 
-                        order_by="protein", selected_samples = protein_samples)
+                        rna_genes=rna_genes, clinical_lab=clinical_lab, protein_size=0.01,
+                        order_by="protein", selected_samples = protein_samples, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
   } else {
     protein_genes <- rownames(DB[["Protein"]])
     maxExp_filters <- protein_criteria[grep("maxExp", protein_criteria)]
@@ -336,7 +366,7 @@ my_heatmap_protein <- function(mode, mutation_genes, rna_genes, clinical_lab, pr
       print(temp_res[["cutoff"]])
     }
     my_heatmap_mutation(mutation_genes=mutation_genes, rna_genes=rna_genes, 
-                        protein_genes=protein_genes, clinical_lab=clinical_lab, 
-                        order_by="protein", selected_samples = protein_samples)
+                        protein_genes=protein_genes, clinical_lab=clinical_lab, protein_size=0.01,
+                        order_by="protein", selected_samples = protein_samples, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
   }
 }

@@ -284,12 +284,35 @@ function(input, output, session) {
     return(SCF)
   })
   
+  
   output$OncoPlotClinUI <- renderUI({
     if (!input$OncoPlotHasClin)
       return()
     checkboxGroupInput('OncoPlotClin', '', selectedClinFeature(), selected = "") 
   })
-  
+  output$ImageheatClinUI <- renderUI({
+    if (!input$ImageheatHasClin)
+      return()
+    checkboxGroupInput('ImageheatClin', '', selectedClinFeature(), selected = "")
+  })
+  output$RNAheatClinUI <- renderUI({
+    if (!input$RNAheatHasClin)
+      return()
+    checkboxGroupInput('RNAheatClin', '', selectedClinFeature(), selected = "")
+  })
+  output$ProteinheatClinUI <- renderUI({
+    if (!input$ProteinheatHasClin)
+      return()
+    checkboxGroupInput('ProteinheatClin', '', selectedClinFeature(), selected = "")
+  })
+  output$ClinheatClinUI <- renderUI({
+    checkboxGroupInput('ClinheatClin', '', c(CatClin(), QuanClin()), 
+                       selected = c(CatClin(), QuanClin()))
+  })
+  output$ClinheatSelectOrderFeatureUI <- renderUI({
+    selectInput('ClinheatSelectOrderFeature', "Order samples by", c(CatClin(), QuanClin()), 
+                selected = c(CatClin(), QuanClin())[1])
+  })
   
   observeEvent(input$action.integration.mutation.inputgenes,{
     print(JS('window.innerWidth'))
@@ -350,11 +373,27 @@ function(input, output, session) {
                                    }, 
                                    clinical_lab=input$RNAheatClin,
                                    rna_criteria = strsplit(input$RNAheatGeneCutoff,"and")[[1]],
-                                   rna_genes = NULL
+                                   rna_genes = NULL,
+                                   show.RNA.name = input$show.RNA.name
                                    )
+    
+    height_of_plot <- 40 + length(input$RNAheatClin)
+    if(input$RNAheatHasMutation){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]]))
+    }
+    if(input$RNAheatHasProtein){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputProteins,",")[[1]]))
+    }
     output$RNAheat <- renderPlot({
       return(RNAheat_res[["plot"]])
-    }, height = input$myHeight3, width = input$myWidth3)
+    }, height = input$myHeight3/40*height_of_plot, width = input$myWidth3)
+    
+    # gene clustering dendrogram
+    output$RNAdendro <- renderPlot({
+      if((clust_para[["method"]] == "hc")){
+        plot(RNAheat_res[["sample_order_res"]][["hc"]], cex=0.5)
+      }
+    }, height = input$myHeight3/2, width = input$myWidth3)
   })
   
   observeEvent(input$action.integration.RNA.inputgenes,{
@@ -376,16 +415,24 @@ function(input, output, session) {
                                    rna_criteria = NULL,
                                    rna_genes = gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])
                                    )
+    
+    height_of_plot <- length(gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])) + length(input$RNAheatClin)
+    if(input$RNAheatHasMutation){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]]))
+    }
+    if(input$RNAheatHasProtein){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputProteins,",")[[1]]))
+    }
     output$RNAheat <- renderPlot({
       return(RNAheat_res[["plot"]])
-    }, height = input$myHeight3, width = input$myWidth3)
+    }, height = input$myHeight3/20*height_of_plot, width = input$myWidth3)
     
     # gene clustering dendrogram
     output$RNAdendro <- renderPlot({
       if((clust_para[["method"]] == "hc")){
         plot(RNAheat_res[["sample_order_res"]][["hc"]], cex=0.5)
       }
-    }, height = input$myHeight3, width = input$myWidth3)
+    }, height = input$myHeight3/2, width = input$myWidth3)
   })
   
   # download ordered data for heatmap
@@ -402,7 +449,7 @@ function(input, output, session) {
   ########################################################################
   # plot heatmap order by protein
   observeEvent(input$action.integration.protein.denovo,{
-    Proteinheat_res <<- my_heatmap_protein(mode=input$ProteinheatIsInputGenes,
+    Proteinheat_res <<- my_heatmap_protein(mode=1,
                                            mutation_genes=if(input$ProteinheatHasMutation){
                                              gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]])
                                            }, 
@@ -411,18 +458,27 @@ function(input, output, session) {
                                            }, 
                                            clinical_lab=input$ProteinheatClin,
                                            protein_criteria = strsplit(input$ProteinheatGeneCutoff,"and")[[1]], 
-                                           protein_genes = NULL)
+                                           protein_genes = NULL,
+                                           show.protein.name = input$show.protein.name)
+    
+    height_of_plot <- 40 + length(input$ProteinheatClin)
+    if(input$ProteinheatHasMutation){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]]))
+    }
+    if(input$ProteinheatHasRNA){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]]))
+    }
     output$Proteinheat <- renderPlot({
       Proteinheat_res[["plot"]]
-    }, height = input$myHeight4, width = input$myWidth4)
+    }, height = input$myHeight4/40*height_of_plot, width = input$myWidth4)
     # gene clustering dendrogram
     output$Proteindendro <- renderPlot({
       plot(Proteinheat_res[["sample_order_res"]][["hc"]], cex=0.5)
-    }, height = input$myHeight4, width = input$myWidth4)
+    }, height = input$myHeight4/2, width = input$myWidth4)
   })
   
   observeEvent(input$action.integration.protein.inputgenes,{
-    Proteinheat_res <<- my_heatmap_protein(mode=input$ProteinheatIsInputGenes,
+    Proteinheat_res <<- my_heatmap_protein(mode=0,
                                            mutation_genes=if(input$ProteinheatHasMutation){
                                              gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]])
                                            }, 
@@ -430,15 +486,23 @@ function(input, output, session) {
                                              gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]])
                                            }, 
                                            clinical_lab=input$ProteinheatClin,
-                                           protein_criteria = NULL, 
+                                           protein_criteria = NULL,
                                            protein_genes = gsub("\\s","", strsplit(input$ProteinheatInputGenes,",")[[1]]))
+    
+    height_of_plot <- length(gsub("\\s","", strsplit(input$ProteinheatInputGenes,",")[[1]])) + length(input$ProteinheatClin)
+    if(input$ProteinheatHasMutation){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]]))
+    }
+    if(input$ProteinheatHasRNA){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]]))
+    }
     output$Proteinheat <- renderPlot({
       Proteinheat_res[["plot"]]
-    }, height = input$myHeight4, width = input$myWidth4)
+    }, height = input$myHeight4/20*height_of_plot, width = input$myWidth4)
     # gene clustering dendrogram
     output$Proteindendro <- renderPlot({
       plot(Proteinheat_res[["sample_order_res"]][["hc"]], cex=0.5)
-    }, height = input$myHeight4, width = input$myWidth4)
+    }, height = input$myHeight4/2, width = input$myWidth4)
     
   })
   
@@ -454,6 +518,7 @@ function(input, output, session) {
   ########################################################################
   # Clinical panel 
   ########################################################################
+  
   # plot heatmap order by clinical feature
   observeEvent(input$action.integration.clinical,{
     Clinheat_res <<- my_heatmap_mutation(mutation_genes = if(input$ClinheatHasMutation){
