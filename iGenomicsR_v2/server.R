@@ -161,13 +161,13 @@ function(input, output, session) {
     if (is.null(input$csvfile_clinical))
       return()
     checkboxGroupInput('checkCatClin', 'Select categorical clinical feature', get_all_clin(), 
-                       selected = "") 
+                       selected = "")
   })
   output$checkQuanClinUI <- renderUI({
     if (is.null(input$csvfile_clinical))
       return()
     checkboxGroupInput('checkQuanClin', 'Select quantitative clinical feature', get_all_clin(), 
-                       selected = "") 
+                       selected = "")
   })
   CatClin <- reactive({input$checkCatClin})
   QuanClin <- reactive({input$checkQuanClin})
