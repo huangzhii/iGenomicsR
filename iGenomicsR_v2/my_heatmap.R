@@ -139,7 +139,9 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
         scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
         guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
         theme_bw() + my_theme + labs(x="", y="")
-      plot_heights <- c(plot_heights, length(rna_genes) * 5)# 0.5)
+      print("length of rna genes:")
+      print(length(rna_genes))
+      plot_heights <- c(plot_heights, length(rna_genes))
       
       if(clust_para[["method"]]=="km"){
         print("--- 3 ---")
@@ -222,17 +224,23 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     }
     else{
       print("--- 7 ---")
-      PL[["protein_plot"]] <- ggplot(protein,  aes(Var2, Var1)) + 
-        geom_tile(aes(fill = value)) + 
+      PL[["protein_plot"]] <- ggplot(protein,  aes(Var2, Var1)) +
+        geom_tile(aes(fill = value)) +
         scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(protein$value),max(protein$value),(max(protein$value)-min(protein$value))/5), digits=1)) +
         guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
         theme_bw() + my_theme +
         labs(x="", y="") + theme(plot.margin=unit(c(0,0,0,0), "cm")) +
         theme(axis.text.y = element_blank())
     }
-    plot_heights <- c(plot_heights, length(protein_genes)*protein_size)
+    print(length(protein_genes))
+    if(length(protein_genes)>50){
+      plot_heights <- c(plot_heights, length(protein_genes)*protein_size)
+    }
+    else{
+      plot_heights <- c(plot_heights, length(protein_genes))
+    }
   }
-  
+
   res[["clin_data"]] <- DB[["Clinical"]][ordered_samples,clinical_lab, drop=FALSE]
   # heatmap for categorical clinical data
   clinical_cat_lab <- intersect(DB[["Clinical_cat_lab"]], clinical_lab)
@@ -242,14 +250,14 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
       clinical_cat[[i]] <- melt(t(DB[["Clinical"]][ordered_samples,i, drop=FALSE]))
       clinical_cat[[i]][,"value"] <- as.factor(clinical_cat[[i]][,"value"])
       clinical_cat[[i]][["Var2"]] <- factor(clinical_cat[[i]][["Var2"]], levels=ordered_samples, ordered = TRUE)
-      PL[[i]] <- ggplot(clinical_cat[[i]], aes(Var2, Var1)) + 
+      PL[[i]] <- ggplot(clinical_cat[[i]], aes(Var2, Var1)) +
         geom_tile(aes(fill = value), colour = "white") +
         theme_bw() + my_theme +
         labs(x="", y="")
-      plot_heights <- c(plot_heights,  1 ) 
+      plot_heights <- c(plot_heights, 1 ) 
     }
   }
-  
+
   # heatmap for quantitative clinical data
   clinical_quan_lab <- intersect(DB[["Clinical_quan_lab"]], clinical_lab)
   if(length(clinical_quan_lab)>0){
@@ -366,7 +374,7 @@ my_heatmap_protein <- function(mode, mutation_genes, rna_genes, clinical_lab, pr
       print(temp_res[["cutoff"]])
     }
     my_heatmap_mutation(mutation_genes=mutation_genes, rna_genes=rna_genes, 
-                        protein_genes=protein_genes, clinical_lab=clinical_lab, protein_size=0.01,
+                        protein_genes=protein_genes, clinical_lab=clinical_lab, protein_size=0.05,
                         order_by="protein", selected_samples = protein_samples, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
   }
 }

@@ -545,4 +545,94 @@ function(input, output, session) {
     }) ###
   
   
+  
+  ########################################################################
+  # analysis panel 
+  ########################################################################
+  get_patient_groups <- reactive({
+    if(input$patientGroups == "") {return(NULL)} 
+    tmp<-matrix(strsplit(input$patientGroups, "\n")[[1]])
+    myColnames<-strsplit(tmp[1], "\t")[[1]]
+    data <- ldply(tmp[2:length(tmp)], function(x){
+      gsub(" ", "", unlist(strsplit(x, "\t")))
+    })
+    colnames(data) <- myColnames
+    all_patients <- as.vector(as.matrix(data))
+    all_patients <- all_patients[all_patients != ""]
+    timesOfPat <- table(all_patients)
+    if(any(timesOfPat > 1)){
+      return(paste(names(timesOfPat)[timesOfPat>1], "showed up multiple times"))
+    }
+    data
+  })
+  ## *** output user inputted patient groups ***
+  output$inputtedPatientGroups <- DT::renderDataTable({ 
+    if(input$patientGroups != ""){
+      out <- t(get_patient_groups())
+      out <- cbind(apply(out, 1, function(x){paste(sum(x!=""), "patients")}), out)
+      out
+    }
+  }, selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
+  observeEvent(input$goAnalysisButton, {
+    # Create a Progress object
+    progress <- shiny::Progress$new(session)
+    progress$set(message = "Calculating... This may take a while", value = 0)
+    # Close the progress when this reactive exits (even if there's an error)
+    on.exit(progress$close())
+    dataTypes <- list("0"= "mutation", "1"="rna", "2"="protein", "3"="clinical")
+    get_analysis_res <- run_analysis(dataTypes[input$AnalysisDataType], get_patient_groups())
+    
+    
+    # output analysis result
+    output$analysisResTable <- DT::renderDataTable({ 
+      res <- get_analysis_res
+    }, selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
+  })
+  
+  output$dowloadAnalysisRes <- downloadHandler(
+    filename = function() { "full_significant_genes.csv" },
+    content = function(file) {
+      write.csv(get_analysis_res(),file, row.names=TRUE)
+    })
+  
+  # disease free survival
+  observeEvent(input$goAnalysisButton, {
+    
+    output[["DFSurvivalPlot"]] <- renderPlot({
+      
+      PatList <- as.list(get_patient_groups())
+      PatList <- lapply(PatList, function(x){setdiff(x, "")})
+      clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"DiseaseFreeMonths"]),
+                           event=DB[["Clinical"]][unlist(PatList),"DiseaseFreeStatus"]=="WITHTUMOR",
+                           group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
+      )
+      clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
+      survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
+      survf <- survfit(Surv(time,event) ~ group, data = clin_d)
+      print(ggsurv(survf) + labs(title=paste("pvalue:", pchisq(survd$chisq, 1)),
+                                 x='Time (Month)', y='Disease free survival'))
+    }, height = 500, width = 700)
+    
+  })
+  
+  
+  # survival
+  observeEvent(input$goAnalysisButton, {
+    
+    output[["SurvivalPlot"]] <- renderPlot({
+      PatList <- as.list(get_patient_groups())
+      PatList <- lapply(PatList, function(x){setdiff(x, "")})
+      clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"OverallSurvivalMonths"]),
+                           event=DB[["Clinical"]][unlist(PatList),"OverallSurvivalStatus"]=="DECEASED",
+                           group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
+      )
+      clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
+      survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
+      survf <- survfit(Surv(time,event) ~ group, data = clin_d)
+      print(ggsurv(survf) + labs(title=paste("pvalue:", pchisq(survd$chisq, 1)),
+                                 x='Time (Month)', y='Survival'))
+    }, height = 500, width = 700)
+    
+  })
+  
 }

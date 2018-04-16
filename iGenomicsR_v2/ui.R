@@ -403,8 +403,34 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                  )
                     )
            ),
-           tabPanel("Data Analysis"
-                    
+           tabPanel("Data Analysis",
+                    sidebarLayout(
+                      position = "left",
+                      sidebarPanel(
+                        width=3,
+                        h4("Select analysis module"),
+                        awesomeRadio("AnalysisDataType", "", list("Mutation"=0, "RNA expression"=1, "Protein expression"=2, "Clinical data"=3, "Survival"=4)),
+                        h4("Define patient groups"),
+                        tags$textarea(id="patientGroups", ncol=2),
+                        tags$br(),
+                        actionButton("goAnalysisButton", "Run Analysis!"),
+                        p("Click the button to start analysis.")
+                      ),
+                      mainPanel(
+                        width=9,
+                        h4("Patients you inputted"),
+                        DT::dataTableOutput("inputtedPatientGroups"),
+                        conditionalPanel(condition="input.AnalysisDataType==4",
+                                         plotOutput("SurvivalPlot", height='100%', width='100%'),
+                                         plotOutput("DFSurvivalPlot", height='100%', width='100%')),
+                        conditionalPanel(condition="input.AnalysisDataType!=4",
+                                         h4("Associated genes or clinical features"),
+                                         DT::dataTableOutput("analysisResTable"),
+                                         downloadButton("dowloadAnalysisRes", "Download full table of significant genes as .CSV file")
+                        )
+                        
+                      )
+                    )
            ),
            tabPanel("News"
                     
