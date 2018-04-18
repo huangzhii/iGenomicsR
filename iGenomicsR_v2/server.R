@@ -573,6 +573,7 @@ function(input, output, session) {
       out
     }
   }, selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
+  
   observeEvent(input$goAnalysisButton, {
     # Create a Progress object
     progress <- shiny::Progress$new(session)
@@ -609,7 +610,7 @@ function(input, output, session) {
       clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
       survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
       survf <- survfit(Surv(time,event) ~ group, data = clin_d)
-      print(ggsurv(survf) + labs(title=paste("pvalue:", pchisq(survd$chisq, 1)),
+      print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
                                  x='Time (Month)', y='Disease free survival'))
     }, height = 500, width = 700)
     

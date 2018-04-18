@@ -411,10 +411,53 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                         h4("Select analysis module"),
                         awesomeRadio("AnalysisDataType", "", list("Mutation"=0, "RNA expression"=1, "Protein expression"=2, "Clinical data"=3, "Survival"=4)),
                         h4("Define patient groups"),
-                        tags$textarea(id="patientGroups", ncol=2),
+                        textAreaInput(inputId="patientGroups", label = "", cols=10, rows = 10,
+value="TP53_mut	TP53_intact
+TCGA-A2-A0D1-01	TCGA-A2-A0EV-01
+TCGA-A2-A0EQ-01	TCGA-A2-A0EX-01
+TCGA-A2-A0EY-01	TCGA-A2-A0T7-01
+TCGA-A7-A0CJ-01	TCGA-A2-A0YC-01
+TCGA-AR-A1AW-01	TCGA-A2-A0YI-01
+TCGA-C8-A12L-01	TCGA-A2-A0YL-01
+TCGA-C8-A12T-01	TCGA-AO-A126-01
+TCGA-C8-A130-01	TCGA-AR-A1AV-01
+TCGA-C8-A131-01	TCGA-BH-A0BV-01
+TCGA-A2-A0CM-01	TCGA-C8-A12U-01
+TCGA-A2-A0D0-01	TCGA-E2-A154-01
+TCGA-A2-A0SW-01	TCGA-A2-A0D2-01
+TCGA-A2-A0SX-01	TCGA-A2-A0T3-01
+TCGA-A2-A0T1-01	TCGA-A2-A0T6-01
+TCGA-A2-A0T2-01	TCGA-A2-A0YD-01
+TCGA-A2-A0YG-01	TCGA-A2-A0YF-01
+TCGA-A7-A0CE-01	TCGA-A7-A0CD-01
+TCGA-A8-A06Z-01	TCGA-A7-A13F-01
+TCGA-A8-A079-01	TCGA-A8-A06N-01
+TCGA-AN-A0FL-01	TCGA-A8-A076-01
+TCGA-AO-A03O-01	TCGA-A8-A09I-01
+TCGA-AO-A0J6-01	TCGA-AN-A04A-01
+TCGA-AO-A12D-01	TCGA-AN-A0FK-01
+TCGA-AR-A0TX-01	TCGA-AO-A0J9-01
+TCGA-AR-A1AQ-01	TCGA-AO-A0JE-01
+TCGA-BH-A0C0-01	TCGA-AO-A0JJ-01
+TCGA-BH-A0E0-01	TCGA-AO-A0JM-01
+TCGA-BH-A18Q-01	TCGA-AO-A12B-01
+TCGA-BH-A18U-01	TCGA-AO-A12E-01
+TCGA-BH-A18V-01	TCGA-AR-A0TY-01
+TCGA-C8-A12P-01	TCGA-BH-A0AV-01
+TCGA-C8-A12Q-01	TCGA-BH-A0BZ-01
+TCGA-C8-A12W-01	TCGA-BH-A0DD-01
+TCGA-C8-A12Z-01	TCGA-BH-A0DG-01
+TCGA-C8-A134-01	TCGA-BH-A0E9-01
+TCGA-C8-A135-01	TCGA-BH-A18N-01
+TCGA-C8-A138-01	TCGA-BH-A18R-01
+TCGA-D8-A142-01	TCGA-C8-A12V-01
+TCGA-E2-A150-01	TCGA-D8-A13Y-01
+TCGA-E2-A159-01	TCGA-E2-A10A-01"),
                         tags$br(),
-                        actionButton("goAnalysisButton", "Run Analysis!"),
-                        p("Click the button to start analysis.")
+                        conditionalPanel(condition="input.AnalysisDataType!=4",
+                                         actionButton("goAnalysisButton", "Run Analysis"),
+                                         helpText("Click the button to start analysis.")
+                                         )
                       ),
                       mainPanel(
                         width=9,
