@@ -475,8 +475,12 @@ TCGA-E2-A159-01	TCGA-E2-A10A-01"),
                       )
                     )
            ),
-           tabPanel("News"
-                    
+           tabPanel("News",
+                    h3("News", style="color: STEELBLUE; padding-bottom: 20px"),
+                    h4("April 18, 2018", style="color: STEELBLUE; padding-bottom: 20px"),
+                    tags$ul(
+                      tags$li("Modifications finished.")
+                    )
            ),
            tabPanel("FAQ"
                     
