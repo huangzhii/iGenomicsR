@@ -234,7 +234,7 @@ function(input, output, session) {
     
     # output selected mutations
     output$selectedGeneMutationsTable <- DT::renderDataTable({
-      DB[["Mutation_gene"]][unlist(strsplit(gsub(" ", "", input$genesToPullMutation), ",", fixed = TRUE)),]
+      DB[["Mutation_gene"]][unlist(strsplit(gsub(" ", "", input$MutationInputGenes), ",", fixed = TRUE)),]
     },selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
   })
   

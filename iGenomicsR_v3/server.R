@@ -224,7 +224,7 @@ function(input, output, session) {
       d[,"pvalue"] <- format(as.numeric(d[,"pvalue"]),scientific=TRUE, nsmall=2,digits=2)
       d[,"adj_pvalue"] <- format(as.numeric(d[,"adj_pvalue"]),scientific=TRUE, nsmall=2,digits=2)
       return(d)
-    },selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
+    },selection="none",options=list(searching=F, ordering=F))#,extensions = 'Responsive'
     
     output$dowloadGeneMutationTestRes <- downloadHandler(
       filename = function() { "mutation_gene_association_test.csv" },
@@ -234,8 +234,8 @@ function(input, output, session) {
     
     # output selected mutations
     output$selectedGeneMutationsTable <- DT::renderDataTable({
-      DB[["Mutation_gene"]][unlist(strsplit(gsub(" ", "", input$genesToPullMutation), ",", fixed = TRUE)),]
-    },selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
+      DB[["Mutation_gene"]][unlist(strsplit(gsub(" ", "", input$MutationInputGenes), ",", fixed = TRUE)),]
+    },selection="none",options=list(searching=F, ordering=F))#,extensions = 'Responsive'
   })
   
   observeEvent(input$action.navigator.RNA,{
@@ -265,8 +265,8 @@ function(input, output, session) {
     
   })
   output$ClinicalInfoTable <- DT::renderDataTable({
-    DT::datatable(DB[["Clinical"]], extensions = 'Responsive', escape=F, selection = 'none', rownames = T,
-                  options=list(searching=F, ordering=F))
+    DT::datatable(DB[["Clinical"]], escape=F, selection = 'none', rownames = T,
+                  options=list(searching=F, ordering=F)) #, extensions = 'Responsive'
     
   })
   
@@ -549,59 +549,77 @@ function(input, output, session) {
   ########################################################################
   # analysis panel 
   ########################################################################
-  get_patient_groups <- reactive({
-    if(input$patientGroups == "") {return(NULL)} 
-    tmp<-matrix(strsplit(input$patientGroups, "\n")[[1]])
-    myColnames<-strsplit(tmp[1], "\t")[[1]]
-    data <- ldply(tmp[2:length(tmp)], function(x){
-      gsub(" ", "", unlist(strsplit(x, "\t")))
-    })
-    colnames(data) <- myColnames
+  
+  observeEvent(input$goAnalysisButton, {
+    if(is.null(input$patientGroups1) | is.null(input$patientGroups2)){
+      sendSweetAlert(session, title = "Error", text = "Insufficient Input Data.", type = "error",
+                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+      return()
+    }
+    else if(input$patientGroups1 == "" | input$patientGroups2 == "") {
+      get_patient_groups = NULL
+    }
+    tmp1<-matrix(strsplit(input$patientGroups1, "\n")[[1]])
+    tmp2<-matrix(strsplit(input$patientGroups2, "\n")[[1]])
+    if(length(tmp1)!=length(tmp2)){
+      sendSweetAlert(session, title = "Error", text = "Unbalanced patient groups. (Hint: each should include title in the first row)", type = "error",
+                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+      return()
+    }
+    data = data.frame(cbind(tmp1, tmp2))
+    colnames(data) <- data[1,]
+    data <- data[-1,]
+    rownames(data) <- rep(1:dim(data)[1])
+    
     all_patients <- as.vector(as.matrix(data))
     all_patients <- all_patients[all_patients != ""]
     timesOfPat <- table(all_patients)
     if(any(timesOfPat > 1)){
-      return(paste(names(timesOfPat)[timesOfPat>1], "showed up multiple times"))
+      get_patient_groups = paste(names(timesOfPat)[timesOfPat>1], "showed up multiple times")
+      sendSweetAlert(session, title = "Error", text = "Same patient(s) discovered in two groups. Please make sure two groups of patients are mutually exclusive.", type = "error",
+                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+      return()
     }
-    data
-  })
-  ## *** output user inputted patient groups ***
-  output$inputtedPatientGroups <- DT::renderDataTable({ 
-    if(input$patientGroups != ""){
-      out <- t(get_patient_groups())
-      out <- cbind(apply(out, 1, function(x){paste(sum(x!=""), "patients")}), out)
-      out
+    else{
+      get_patient_groups = data
     }
-  }, selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
-  
-  observeEvent(input$goAnalysisButton, {
+    
+    
+    ## *** output user inputted patient groups ***
+    output$inputtedPatientGroups <- DT::renderDataTable({ 
+      if(input$patientGroups1 != "" & input$patientGroups1 != ""){
+        out <- t(get_patient_groups)
+        out <- cbind(apply(out, 1, function(x){paste(sum(x!=""), "patients")}), out)
+        out
+      }
+    }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    
+    if(length(DB) == 0){
+      sendSweetAlert(session, title = "Error", text = "Insufficent input data.", type = "error",
+                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+      return()
+    }
+    
+    
     # Create a Progress object
     progress <- shiny::Progress$new(session)
     progress$set(message = "Calculating... This may take a while", value = 0)
     # Close the progress when this reactive exits (even if there's an error)
     on.exit(progress$close())
     dataTypes <- list("0"= "mutation", "1"="rna", "2"="protein", "3"="clinical")
-    get_analysis_res <- run_analysis(dataTypes[input$AnalysisDataType], get_patient_groups())
-    
-    
+    get_analysis_res <- run_analysis(dataTypes[input$AnalysisDataType], get_patient_groups)
+
+
     # output analysis result
-    output$analysisResTable <- DT::renderDataTable({ 
+    output$analysisResTable <- DT::renderDataTable({
       res <- get_analysis_res
-    }, selection="none",extensions = 'Responsive',options=list(searching=F, ordering=F))
-  })
-  
-  output$dowloadAnalysisRes <- downloadHandler(
-    filename = function() { "full_significant_genes.csv" },
-    content = function(file) {
-      write.csv(get_analysis_res(),file, row.names=TRUE)
-    })
-  
-  # disease free survival
-  observeEvent(input$goAnalysisButton, {
-    
+    }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+
+
+    # disease free survival
     output[["DFSurvivalPlot"]] <- renderPlot({
-      
-      PatList <- as.list(get_patient_groups())
+
+      PatList <- as.list(get_patient_groups)
       PatList <- lapply(PatList, function(x){setdiff(x, "")})
       clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"DiseaseFreeMonths"]),
                            event=DB[["Clinical"]][unlist(PatList),"DiseaseFreeStatus"]=="WITHTUMOR",
@@ -613,15 +631,11 @@ function(input, output, session) {
       print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
                                  x='Time (Month)', y='Disease free survival'))
     }, height = 500, width = 700)
-    
-  })
-  
-  
-  # survival
-  observeEvent(input$goAnalysisButton, {
-    
+
+
+    #survival
     output[["SurvivalPlot"]] <- renderPlot({
-      PatList <- as.list(get_patient_groups())
+      PatList <- as.list(get_patient_groups)
       PatList <- lapply(PatList, function(x){setdiff(x, "")})
       clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"OverallSurvivalMonths"]),
                            event=DB[["Clinical"]][unlist(PatList),"OverallSurvivalStatus"]=="DECEASED",
@@ -630,10 +644,17 @@ function(input, output, session) {
       clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
       survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
       survf <- survfit(Surv(time,event) ~ group, data = clin_d)
-      print(ggsurv(survf) + labs(title=paste("pvalue:", pchisq(survd$chisq, 1)),
+      print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
                                  x='Time (Month)', y='Survival'))
     }, height = 500, width = 700)
-    
   })
+  
+  output$dowloadAnalysisRes <- downloadHandler(
+    filename = function() { "full_significant_genes.csv" },
+    content = function(file) {
+      write.csv(get_analysis_res(),file, row.names=TRUE)
+    })
+  
+  
   
 }
