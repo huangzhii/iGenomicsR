@@ -131,19 +131,19 @@ function(input, output, session) {
       }
     }
     for(i in setdiff(allDataTypes, "Clinical")){
-      DB[[i]] <- DB[[i]][,samples]
+      DB[[i]] <<- DB[[i]][,samples]
     }
     if ("Clinical" %in% allDataTypes){
-      DB[["Clinical"]] <- DB[[i]][samples,]
+      DB[["Clinical"]] <<- DB[[i]][samples,]
     } 
-    DB[["Clinical_cat_lab"]] <- CatClin()
-    DB[["Clinical_quan_lab"]] <- QuanClin()
+    DB[["Clinical_cat_lab"]] <<- CatClin()
+    DB[["Clinical_quan_lab"]] <<- QuanClin()
     assign("DB", DB, envir = .GlobalEnv)
-    print(names(DB))
-    
-    print(head(DB[["Clinical"]]))
-    print(head(DB[["Clinical_cat_lab"]]))
-    print(head(DB[["Clinical_quan_lab"]]))
+    # print(names(DB))
+    # 
+    # print(head(DB[["Clinical"]]))
+    # print(head(DB[["Clinical_cat_lab"]]))
+    # print(head(DB[["Clinical_quan_lab"]]))
     
     sendSweetAlert(session, title = "Success", text = "Now only keep samples shared by all subjects", type = "success",
                    btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
@@ -217,7 +217,7 @@ function(input, output, session) {
     # output gene mutation test result
     output$geneMutationTestResTable <- DT::renderDataTable({
       # print(head(DB[["Mutation_gene"]]))
-      DB[["mutation_gene_test"]] <- run_gene_mutation_association(DB[["Mutation_gene"]])
+      DB[["mutation_gene_test"]] <<- run_gene_mutation_association(DB[["Mutation_gene"]])
       # print(head(DB[["mutation_gene_test"]]))
       d <- DB[["mutation_gene_test"]]
       d[,"oddsRatio"] <- format(as.numeric(d[,"oddsRatio"]),nsmall=2, digits=2)
