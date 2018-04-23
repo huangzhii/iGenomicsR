@@ -428,11 +428,15 @@ function(input, output, session) {
     }, height = input$myHeight3/20*height_of_plot, width = input$myWidth3)
     
     # gene clustering dendrogram
-    output$RNAdendro <- renderPlot({
-      if((clust_para[["method"]] == "hc")){
+    if((clust_para[["method"]] == "hc")){
+      output$RNAdendro <- renderPlot({
         plot(RNAheat_res[["sample_order_res"]][["hc"]], cex=0.5)
-      }
-    }, height = input$myHeight3/2, width = input$myWidth3)
+      }, height = input$myHeight3/2, width = input$myWidth3)
+    }
+    if((clust_para[["method"]] == "km")){
+      output$RNAdendro <- renderPlot({
+      }, height = 0, width = 0)
+    }
   })
   
   # download ordered data for heatmap

@@ -145,13 +145,13 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
       
       if(clust_para[["method"]]=="km"){
         print("--- 3 ---")
-        d <- data.frame(patient_id=ordered_samples, cluster=paste("G",sort(sample_order_res[["cluster"]]), sep=""))
+        d <- data.frame(patient_id=ordered_samples, cluster=paste("Group ",sort(sample_order_res[["cluster"]]), sep=""))
         res[["rna_group"]] <- d[,"cluster",drop=FALSE]
         d[["patient_id"]] <- factor(d[["patient_id"]], levels=ordered_samples, ordered = TRUE)
         PL[["sample_group"]] <- ggplot(d, aes(patient_id, "cluster")) + 
           geom_tile(aes(fill = cluster), colour = "white") +
           theme_bw() + labs(x="", y="") + my_theme
-        plot_heights <- c(plot_heights, 0.2)
+        plot_heights <- c(plot_heights, 1)
       }
     } else {
       print("--- 4 ---")
