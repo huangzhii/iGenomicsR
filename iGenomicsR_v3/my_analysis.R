@@ -29,10 +29,12 @@ run_analysis <- function(dataType, patients){
     res <- get_related_genes_by_mutation(patients_list)
   } else if(dataType == "rna"){
     res <- get_related_genes_by_rna(patients_list)
-  }else if(dataType == "protein"){
+  } else if(dataType == "protein"){
     res <- get_related_genes_by_protein(patients_list)
   } else if(dataType == "clinical"){
     res <- get_related_genes_by_clinical(patients_list)
+  } else if(dataType == "image"){
+    res <- get_related_genes_by_image(patients_list)
   }
   res
 }
@@ -116,6 +118,41 @@ get_related_genes_by_protein <- function(PatList){
   for(i in rownames(d)){
     if( sum(! is.na( d[i, PatList[[1]]])) >= 5 & sum(! is.na( d[i, PatList[[2]]] )) >= 5 )
     res[i, "pvalue"] <- wilcox.test(d[i,PatList[[1]]], d[i,PatList[[2]]])$p.value
+  }
+  res <- res[!is.na(res[, "pvalue"]),]
+  res[, "adj_pvalue"] <- p.adjust(res[, "pvalue"], method="BH")
+  res <- res[order(res[,"adj_pvalue"]),]
+  if(sum(res[,"adj_pvalue"] <= 0.05) <= 10){
+    res <- head(res, n=10)
+  } else(
+    res <- subset(as.data.frame(res), adj_pvalue <= 0.05)
+  )
+  res
+  
+}
+
+
+get_related_genes_by_image <- function(PatList){
+  d <- DB[["Image"]][,unlist(PatList)]
+  res <- matrix(NA, ncol=4, nrow=nrow(d))
+  rownames(res) <- rownames(d)
+  colnames(res) <- c(paste("mean_", names(PatList), sep=""), "pvalue", "adj_pvalue")
+  
+  # no need to test if there is a group with patients < 5
+  patients_no_exp <- apply(d, 2, function(x){all(is.na(x))})
+  patients_no_exp <- names(patients_no_exp)[patients_no_exp]
+  if(any(lapply(PatList, function(x){length(setdiff(x, patients_no_exp))}) < 5 )){
+    print(lapply(PatList, function(x){length(setdiff(x, patients_no_exp))}))
+    res[1,"pvalue"] <-  "No enough patients with protein data"
+    return(res[1,,drop=FALSE])
+  }
+  
+  for(i in names(PatList)){
+    res[,paste("mean_",i, sep="")] <- apply(d[,PatList[[i]]], 1, mean, na.rm=TRUE)
+  }
+  for(i in rownames(d)){
+    if( sum(! is.na( d[i, PatList[[1]]])) >= 5 & sum(! is.na( d[i, PatList[[2]]] )) >= 5 )
+      res[i, "pvalue"] <- wilcox.test(d[i,PatList[[1]]], d[i,PatList[[2]]])$p.value
   }
   res <- res[!is.na(res[, "pvalue"]),]
   res[, "adj_pvalue"] <- p.adjust(res[, "pvalue"], method="BH")

@@ -117,9 +117,12 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     image <- melt(image)
     image[["Var2"]] <- factor(image[["Var2"]], levels=ordered_samples, ordered = TRUE)
     image[["Var1"]] <- factor(image[["Var1"]], levels=image_features, ordered = TRUE)
+    # save(image, file = "~/Desktop/image.Rdata")
+    image.value.tmp = image$value
+    image.value.tmp[is.na(image.value.tmp)] <- 0
     PL[["image_plot"]] <- ggplot(image,  aes(Var2, Var1)) + 
       geom_tile(aes(fill = value)) + 
-      scale_fill_gradient2(low = "green" , mid="black", high = "red", breaks=round(seq(min(image$value),max(image$value),(max(image$value)-min(image$value))/5), digits=1)) +
+      scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(image.value.tmp),max(image.value.tmp),(max(image.value.tmp)-min(image.value.tmp))/5), digits=1)) +
       guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical") +
       theme_bw() + my_theme +
       labs(x="", y="")
@@ -303,12 +306,12 @@ parse_criteria <- function(rules){
   }
   to_return
 }
-my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, protein_genes, clinical_lab, rna_criteria, rna_genes, show.RNA.name = 1, show.protein.name = 1){
+my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, image_features, protein_genes, clinical_lab, rna_criteria, rna_genes, show.RNA.name = 1, show.protein.name = 1){
   rna_samples <- colnames(DB[["RNA"]])[!apply(DB[["RNA"]], 2, function(x){all(is.na(x))})]
   
   # order by user specified genes
   if(mode==0){
-    my_heatmap_mutation(mutation_genes=mutation_genes, rna_genes=rna_genes, 
+    my_heatmap_mutation(mutation_genes=mutation_genes, image_features=image_features, rna_genes=rna_genes, 
                         protein_genes=protein_genes, clinical_lab=clinical_lab, 
                         order_by="rna", selected_samples = rna_samples,
                         clust_para=clust_para, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
@@ -332,7 +335,7 @@ my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, p
       rna_genes <- temp_res[["genes"]]
       print(temp_res[["cutoff"]])
     }
-    my_heatmap_mutation(mutation_genes=mutation_genes, rna_genes=rna_genes, 
+    my_heatmap_mutation(mutation_genes=mutation_genes, image_features=image_features, rna_genes=rna_genes, 
                         protein_genes=protein_genes, clinical_lab=clinical_lab, 
                         order_by="rna", rna_size=0.01, selected_samples = rna_samples,
                         clust_para=clust_para, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
@@ -351,12 +354,12 @@ divide_patients_by_cuttree <- function(hclust_tree){
 ########################################################################
 # protein based
 ########################################################################
-my_heatmap_protein <- function(mode, mutation_genes, rna_genes, clinical_lab, protein_criteria, protein_genes, show.RNA.name=1, show.protein.name = 1){
+my_heatmap_protein <- function(mode, mutation_genes, image_features, rna_genes, clinical_lab, protein_criteria, protein_genes, show.RNA.name=1, show.protein.name = 1){
   protein_samples <- colnames(DB[["Protein"]])[!apply(DB[["Protein"]], 2, function(x){any(is.na(x))})]
   print(length(protein_samples))
   # order by user specified genes
   if(mode==0){
-    my_heatmap_mutation(mutation_genes=mutation_genes, protein_genes=protein_genes, 
+    my_heatmap_mutation(mutation_genes=mutation_genes, image_features=image_features, protein_genes=protein_genes, 
                         rna_genes=rna_genes, clinical_lab=clinical_lab, protein_size=0.01,
                         order_by="protein", selected_samples = protein_samples, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
   } else {
@@ -379,7 +382,7 @@ my_heatmap_protein <- function(mode, mutation_genes, rna_genes, clinical_lab, pr
       protein_genes <- temp_res[["genes"]]
       print(temp_res[["cutoff"]])
     }
-    my_heatmap_mutation(mutation_genes=mutation_genes, rna_genes=rna_genes, 
+    my_heatmap_mutation(mutation_genes=mutation_genes, image_features=image_features, rna_genes=rna_genes, 
                         protein_genes=protein_genes, clinical_lab=clinical_lab, protein_size=0.05,
                         order_by="protein", selected_samples = protein_samples, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name)
   }

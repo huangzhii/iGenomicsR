@@ -13,6 +13,11 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                   accept = c("text/csv",
                                              "text/comma-separated-values,text/plain",
                                              ".csv", ".xlsx", ".xls")),
+                        fileInput("csvfile_image", "Image Profile",
+                                  multiple = FALSE,
+                                  accept = c("text/csv",
+                                             "text/comma-separated-values,text/plain",
+                                             ".csv", ".xlsx", ".xls")),
                         fileInput("csvfile_mRNA", "RNA Expression Table",
                                   multiple = FALSE,
                                   accept = c("text/csv",
@@ -24,11 +29,6 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                              "text/comma-separated-values,text/plain",
                                              ".csv", ".xlsx", ".xls")),
                         fileInput("csvfile_clinical", "Clinical Profile",
-                                  multiple = FALSE,
-                                  accept = c("text/csv",
-                                             "text/comma-separated-values,text/plain",
-                                             ".csv", ".xlsx", ".xls")),
-                        fileInput("csvfile_image", "Image Profile",
                                   multiple = FALSE,
                                   accept = c("text/csv",
                                              "text/comma-separated-values,text/plain",
@@ -87,10 +87,10 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                    
                                    fluidRow(
                                      column(2, "Mutation Profile", htmlOutput("check1")),
+                                     column(2, "Image Profile", htmlOutput("check5")),
                                      column(2, "RNA Expression Profile", htmlOutput("check2")),
                                      column(2, "Protein Expression Profile", htmlOutput("check3")),
                                      column(2, "Clinical Profile", htmlOutput("check4")),
-                                     column(2, "Image Profile", htmlOutput("check5")),
                                      style="text-align: center"
                                    ),
                                    tableOutput("dataUploadSummary"),
@@ -113,6 +113,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                                    
                                                    h5("download data after sample selection"),
                                                    downloadButton("downloadSelectedMutation", "Download selected mutation data in .csv format"),br(),
+                                                   downloadButton("downloadSelectedImageFeature", "Download selected image feature data in .csv format"),br(),
                                                    downloadButton("downloadSelectedRNA", "Download selected RNA data in .csv format"),br(),
                                                    downloadButton("downloadSelectedProtein", "Download selected protein data in .csv format"),br(),
                                                    downloadButton("downloadSelectedClin", "Download selected clinical data in .csv format"),
@@ -142,12 +143,14 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                                          // disable download at startup.
                                                          $(document).ready(function() {
                                                          $("#downloadSelectedMutation").attr("disabled", "true").attr("onclick", "return false;");
+                                                         $("#downloadSelectedImageFeature").attr("disabled", "true").attr("onclick", "return false;");
                                                          $("#downloadSelectedRNA").attr("disabled", "true").attr("onclick", "return false;");
                                                          $("#downloadSelectedProtein").attr("disabled", "true").attr("onclick", "return false;");
                                                          $("#downloadSelectedClin").attr("disabled", "true").attr("onclick", "return false;");
                                                          
                                                          Shiny.addCustomMessageHandler("download_seleted_data_ready", function(message) {
                                                          $("#downloadSelectedMutation").removeAttr("disabled").removeAttr("onclick");
+                                                         $("#downloadSelectedImageFeature").removeAttr("disabled").removeAttr("onclick");
                                                          $("#downloadSelectedRNA").removeAttr("disabled").removeAttr("onclick");
                                                          $("#downloadSelectedProtein").removeAttr("disabled").removeAttr("onclick");
                                                          $("#downloadSelectedClin").removeAttr("disabled").removeAttr("onclick");
@@ -243,6 +246,9 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                                             value = "PTEN, TP53", height = 200),
                                               tags$hr(),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              prettyCheckbox(inputId = "OncoPlotHasImage", label = "Select features to plot image data", icon = icon("check")),
+                                              conditionalPanel(condition="input.OncoPlotHasImage==1",
+                                                               uiOutput("ImageInputFeaturesSubUI_Mutation")),
                                               prettyCheckbox(inputId = "OncoPlotHasProtein", label = "Input genes to plot protein level", icon = icon("check")),
                                               conditionalPanel(condition="input.OncoPlotHasProtein==1",
                                                                textInput("MutationInputProteins", "Paste genes here", "PTEN")),
@@ -271,15 +277,14 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                             sidebarPanel(
                                               width=3,
                                               h4("Input Image Features", style="color: STEELBLUE"),
-                                              textAreaInput(inputId="ImageInputFeatures", label="Paste features here",
-                                                            value="Fraction_Fiber, Nuclei_Density, Nuclei_Area", height = 200),
+                                              uiOutput("ImageInputFeaturesUI"),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
                                               prettyCheckbox("ImageheatHasMutation", "Input genes to plot mutation profile", FALSE, icon = icon("check")),
                                               conditionalPanel(condition="input.ImageheatHasMutation==1",
                                                                textInput("ImageInputMutations", "Paste genes here", "TP53")),
                                               prettyCheckbox("ImageheatHasProtein", "Input genes to plot protein level", FALSE, icon = icon("check")),
                                               conditionalPanel(condition="input.ImageheatHasProtein==1",
-                                                               textInput("ImageInputPriteins", "Paste genes here", "TP53")),
+                                                               textInput("ImageInputProteins", "Paste genes here", "PTEN")),
                                               prettyCheckbox("ImageheatHasRna", "Input genes to plot RNA level", FALSE, icon = icon("check")),
                                               conditionalPanel(condition="input.ImageheatHasRna==1",
                                                                textInput("ImageInputRna", "Paste genes here", "PTEN, TP53")),
@@ -288,7 +293,8 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                                                uiOutput("ImageheatClinUI")),
                                               tags$hr(),
                                               sliderInput(inputId="myHeight2", label="Plot height:", min=200, max=2000, value=800),
-                                              sliderInput(inputId="myWidth2", label="Plot width:", min=200, max=2000, value=800)
+                                              sliderInput(inputId="myWidth2", label="Plot width:", min=200, max=2000, value=800),
+                                              actionButton("action.integration.image.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE")
                                             ),
                                             mainPanel(
                                               h4("Image heatmap", style="color: STEELBLUE"),
@@ -319,6 +325,9 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               actionButton("action.integration.RNA.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE"),
                                               tags$hr(),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              prettyCheckbox(inputId = "RNAheatHasImage", label = "Select features to plot image data", icon = icon("check")),
+                                              conditionalPanel(condition="input.RNAheatHasImage==1",
+                                                               uiOutput("ImageInputFeaturesSubUI_RNA")),
                                               prettyCheckbox(inputId = "RNAheatHasProtein", label = "Input genes to plot protein level", icon = icon("check")),
                                               conditionalPanel(condition="input.RNAheatHasProtein==1",
                                                                textInput("RNAheatInputProteins", "Paste genes here", "PTEN")),
@@ -361,6 +370,9 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               
                                               tags$hr(),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              prettyCheckbox(inputId = "ProteinheatHasImage", label = "Select features to plot image data", icon = icon("check")),
+                                              conditionalPanel(condition="input.ProteinheatHasImage==1",
+                                                               uiOutput("ImageInputFeaturesSubUI_Protein")),
                                               prettyCheckbox("ProteinheatHasRNA", "Input genes to plot RNA level", FALSE, icon = icon("check")),
                                               conditionalPanel(condition="input.ProteinheatHasRNA==1",
                                                                textInput("ProteinheatInputRNA", "Paste genes here", "PTEN")),
@@ -395,6 +407,9 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               uiOutput("ClinheatSelectOrderFeatureUI"),
                                               tags$hr(),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
+                                              prettyCheckbox(inputId = "ClinheatHasImage", label = "Select features to plot image data", icon = icon("check")),
+                                              conditionalPanel(condition="input.ClinheatHasImage==1",
+                                                               uiOutput("ImageInputFeaturesSubUI_Clinical")),
                                               prettyCheckbox("ClinheatHasRNA", "Input genes to plot RNA level", FALSE, icon = icon("check")),
                                               conditionalPanel(condition="input.ClinheatHasRNA==1",
                                                                textInput("ClinheatInputRNA", "Paste genes here", "PTEN, TP53")),
@@ -426,7 +441,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                       sidebarPanel(
                         width=3,
                         h4("Select analysis module", style="color: STEELBLUE"),
-                        awesomeRadio("AnalysisDataType", "", list("Mutation"=0, "RNA expression"=1, "Protein expression"=2, "Clinical data"=3, "Survival"=4)),
+                        awesomeRadio("AnalysisDataType", "", list("Mutation"=0, "Image feature"=4, "RNA expression"=1, "Protein expression"=2, "Clinical data"=3, "Survival"=5)),
                         h4("Define patient groups", style="color: STEELBLUE"),
                         fluidRow(
                           column(6, textAreaInput(inputId="patientGroups1", label = "Group 1", cols=10, rows = 10,
@@ -517,7 +532,7 @@ TCGA-E2-A10A-01"))
                         ),
                         
                         tags$br(),
-                        conditionalPanel(condition="input.AnalysisDataType!=4",
+                        conditionalPanel(condition="input.AnalysisDataType!=5",
                                          actionButton("goAnalysisButton", "Run Analysis"),
                                          helpText("Click the button to start analysis.")
                                          )
@@ -526,10 +541,10 @@ TCGA-E2-A10A-01"))
                         width=9,
                         h4("Patients you inputted"),
                         DT::dataTableOutput("inputtedPatientGroups"),
-                        conditionalPanel(condition="input.AnalysisDataType==4",
+                        conditionalPanel(condition="input.AnalysisDataType==5",
                                          plotOutput("SurvivalPlot", height='100%', width='100%'),
                                          plotOutput("DFSurvivalPlot", height='100%', width='100%')),
-                        conditionalPanel(condition="input.AnalysisDataType!=4",
+                        conditionalPanel(condition="input.AnalysisDataType!=5",
                                          h4("Associated genes or clinical features"),
                                          DT::dataTableOutput("analysisResTable"),
                                          downloadButton("dowloadAnalysisRes", "Download full table of significant genes as .CSV file")
@@ -540,6 +555,11 @@ TCGA-E2-A10A-01"))
            ),
            tabPanel("News",
                     h3("News", style="color: STEELBLUE; padding-bottom: 20px"),
+                    h4("May 05, 2018", style="color: STEELBLUE; padding-bottom: 20px"),
+                    tags$ul(
+                      tags$li("Integrated image features."),
+                      tags$li("Minor bugs fixed.")
+                    ),
                     h4("April 18, 2018", style="color: STEELBLUE; padding-bottom: 20px"),
                     tags$ul(
                       tags$li("Modifications finished.")

@@ -65,6 +65,7 @@ function(input, output, session) {
       return(NULL)}else{
         DB[["Mutation_gene"]] <<- read.table(input$csvfile_mutation$datapath, sep=input$sep, header=TRUE, row.names = 1)
         colnames(DB[["Mutation_gene"]]) <<- gsub(".", "-", colnames(DB[["Mutation_gene"]]), fixed = TRUE)
+        DB[["Mutation_gene"]][is.na(DB[["Mutation_gene"]])] <<- 0
         session$sendCustomMessage("buttonCallbackHandler", "tab1")
         }
     return(dim( DB[["Mutation_gene"]] )) 
@@ -75,6 +76,7 @@ function(input, output, session) {
         DB[["RNA"]] <<- read.table(input$csvfile_mRNA$datapath, sep=input$sep, header=TRUE, row.names = 1)
         colnames(DB[["RNA"]]) <<- gsub(".", "-", colnames(DB[["RNA"]]), fixed = TRUE)
         DB[["RNA"]] <<- apply(DB[["RNA"]], c(1,2), as.numeric)
+        DB[["RNA"]][is.na(DB[["RNA"]])] <<- 0
         session$sendCustomMessage("buttonCallbackHandler", "tab1")
       }
     return(dim( DB[["RNA"]] ))
@@ -85,6 +87,7 @@ function(input, output, session) {
         DB[["Protein"]] <<- read.table(input$csvfile_protein$datapath, sep=input$sep, header=TRUE, row.names = 1)
         colnames(DB[["Protein"]]) <<- gsub(".", "-", colnames(DB[["Protein"]]), fixed = TRUE)
         DB[["Protein"]] <<- apply(DB[["Protein"]], c(1,2), as.numeric)
+        DB[["Protein"]][is.na(DB[["Protein"]])] <<- 0
         session$sendCustomMessage("buttonCallbackHandler", "tab1")
       }
     return(dim(DB[["Protein"]]))
@@ -101,6 +104,35 @@ function(input, output, session) {
     if (is.null(input$csvfile_image)){
       return(NULL)}else{
         DB[["Image"]] <<- read.table(input$csvfile_image$datapath, sep=input$sep, header=TRUE, row.names = 1)
+        DB[["Image"]] <<- t(DB[["Image"]])
+        # Data Integration
+        DB[["Image"]][is.na(DB[["Image"]])] <<- 0
+        output$ImageInputFeaturesUI <- renderUI({
+          selectInput(inputId="ImageInputFeatures", label="Select features here",
+                      choices = rownames(DB[["Image"]]),
+                      multiple = T)
+        })
+        
+        output$ImageInputFeaturesSubUI_Mutation <- renderUI({
+          selectInput(inputId="ImageInputFeaturesSelectionForMutation", label="Select features here",
+                      choices = rownames(DB[["Image"]]),
+                      multiple = T)
+        })
+        output$ImageInputFeaturesSubUI_RNA <- renderUI({
+          selectInput(inputId="ImageInputFeaturesSelectionForRNA", label="Select features here",
+                      choices = rownames(DB[["Image"]]),
+                      multiple = T)
+        })
+        output$ImageInputFeaturesSubUI_Protein <- renderUI({
+          selectInput(inputId="ImageInputFeaturesSelectionForProtein", label="Select features here",
+                      choices = rownames(DB[["Image"]]),
+                      multiple = T)
+        })
+        output$ImageInputFeaturesSubUI_Clinical <- renderUI({
+          selectInput(inputId="ImageInputFeaturesSelectionForClinical", label="Select features here",
+                      choices = rownames(DB[["Image"]]),
+                      multiple = T)
+        })
         session$sendCustomMessage("buttonCallbackHandler", "tab1")
       }
     return(dim(DB[["Image"]]))
@@ -186,6 +218,12 @@ function(input, output, session) {
     content = function(file) {
       sampleSelection
       write.csv(DB[["Mutation_gene"]], file, row.names=TRUE)
+    }) ###
+  output$downloadSelectedImageFeature <- downloadHandler(
+    filename = function() { "SelectedImageFeatureTable.csv" },
+    content = function(file) {
+      sampleSelection
+      write.csv(DB[["Image"]], file, row.names=TRUE)
     }) ###
   output$downloadSelectedRNA <- downloadHandler(
     filename = function() { "SelectedRNATable.csv" },
@@ -324,8 +362,10 @@ function(input, output, session) {
   })
   
   observeEvent(input$action.integration.mutation.inputgenes,{
-    print(JS('window.innerWidth'))
     OncoPlot_res <<- my_heatmap_mutation(mutation_genes = gsub("\\s","", strsplit(input$genesToPullMutation,",")[[1]]),
+                                         image_features = if(input$OncoPlotHasImage){
+                                           gsub("\\s","", input$ImageInputFeaturesSelectionForMutation)
+                                         },
                                          rna_genes = if(input$OncoPlotHasRna){
                                            gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]])
                                          },
@@ -337,12 +377,15 @@ function(input, output, session) {
     # save(OncoPlot_res, file= "~/Desktop/oncoplot.Rdata")
     height_of_plot <- length(gsub("\\s","", strsplit(input$genesToPullMutation,",")[[1]])) +
       length(input$OncoPlotClin)
-     if(input$OncoPlotHasRna){
-       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]]))
-     }
-     if(input$OncoPlotHasProtein){
-       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$MutationInputProteins,",")[[1]]))
-     }
+    if(input$OncoPlotHasImage){
+      height_of_plot = height_of_plot + length(gsub("\\s","", input$ImageInputFeaturesSelectionForMutation))
+    }
+    if(input$OncoPlotHasRna){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$MutationInputRna,",")[[1]]))
+    }
+    if(input$OncoPlotHasProtein){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$MutationInputProteins,",")[[1]]))
+    }
     output$OncoPlot <- renderPlot({
       return(OncoPlot_res[["plot"]])
     }, width=input$myWidth1, height=input$myHeight1/20*height_of_plot)
@@ -362,6 +405,43 @@ function(input, output, session) {
   ########################################################################
   # Imageheat
   
+  observeEvent(input$action.integration.image.inputgenes,{
+    Imageheat_res <<- my_heatmap_mutation(image_features = gsub("\\s","", input$ImageInputFeatures),
+                                          mutation_genes = if(input$ImageheatHasMutation){
+                                            gsub("\\s","", strsplit(input$ImageInputMutations,",")[[1]])
+                                          },
+                                         rna_genes = if(input$ImageheatHasRna){
+                                           gsub("\\s","", strsplit(input$ImageInputRna,",")[[1]])
+                                         },
+                                         protein_genes = if(input$ImageheatHasProtein){
+                                           gsub("\\s","", strsplit(input$ImageInputProteins,",")[[1]])
+                                         },
+                                         clinical_lab = input$ImageheatClin,
+                                         order_by="image")
+    # save(Imageheat_res, file= "~/Desktop/oncoplot.Rdata")
+    height_of_plot <- length(gsub("\\s","", input$ImageInputFeatures)) +
+      length(input$ImageheatClin)
+    if(input$ImageheatHasMutation){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ImageInputMutations,",")[[1]]))
+    }
+    if(input$ImageheatHasRna){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ImageInputRna,",")[[1]]))
+    }
+    if(input$ImageheatHasProtein){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ImageInputProteins,",")[[1]]))
+    }
+    output$Imageheat <- renderPlot({
+      return(Imageheat_res[["plot"]])
+    }, width=input$myWidth2, height=input$myHeight2/20*height_of_plot)
+    
+  })
+  
+  # download ordered data for heatmap
+  output$downloadImageheatData <- downloadHandler(
+    filename = function() { "data_ordered_by_image_feature.csv" },
+    content = function(file) {
+      write.csv(Imageheat_res[["table"]], file, row.names=TRUE)
+    }) ###
   
   
   ########################################################################
@@ -376,7 +456,10 @@ function(input, output, session) {
                                    clust_para = rna_RNAheatClustPara,
                                    mutation_genes = if(input$RNAheatHasMutation){
                                      gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]])
-                                   }, 
+                                   },
+                                   image_features = if(input$RNAheatHasImage){
+                                     gsub("\\s","", input$ImageInputFeaturesSelectionForRNA)
+                                   },
                                    protein_genes = if(input$RNAheatHasProtein){
                                      gsub("\\s","", strsplit(input$RNAheatInputProteins,",")[[1]])
                                    }, 
@@ -389,6 +472,9 @@ function(input, output, session) {
     height_of_plot <- 40 + length(input$RNAheatClin)
     if(input$RNAheatHasMutation){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]]))
+    }
+    if(input$RNAheatHasImage){
+      height_of_plot = height_of_plot + length(gsub("\\s","", input$ImageInputFeaturesSelectionForRNA))
     }
     if(input$RNAheatHasProtein){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputProteins,",")[[1]]))
@@ -416,7 +502,10 @@ function(input, output, session) {
                                    clust_para = rna_RNAheatClustPara,
                                    mutation_genes = if(input$RNAheatHasMutation){
                                      gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]])
-                                   }, 
+                                   },
+                                   image_features = if(input$RNAheatHasImage){
+                                     gsub("\\s","", input$ImageInputFeaturesSelectionForRNA)
+                                   },
                                    protein_genes = if(input$RNAheatHasProtein){
                                      gsub("\\s","", strsplit(input$RNAheatInputProteins,",")[[1]])
                                    }, 
@@ -428,6 +517,9 @@ function(input, output, session) {
     height_of_plot <- length(gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])) + length(input$RNAheatClin)
     if(input$RNAheatHasMutation){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]]))
+    }
+    if(input$RNAheatHasImage){
+      height_of_plot = height_of_plot + length(gsub("\\s","", input$ImageInputFeaturesSelectionForRNA))
     }
     if(input$RNAheatHasProtein){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputProteins,",")[[1]]))
@@ -465,7 +557,10 @@ function(input, output, session) {
     Proteinheat_res <<- my_heatmap_protein(mode=1,
                                            mutation_genes=if(input$ProteinheatHasMutation){
                                              gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]])
-                                           }, 
+                                           },
+                                           image_features = if(input$ProteinheatHasImage){
+                                             gsub("\\s","", input$ImageInputFeaturesSelectionForProtein)
+                                           },
                                            rna_genes=if(input$ProteinheatHasRNA){
                                              gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]])
                                            }, 
@@ -477,6 +572,9 @@ function(input, output, session) {
     height_of_plot <- 40 + length(input$ProteinheatClin)
     if(input$ProteinheatHasMutation){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]]))
+    }
+    if(input$ProteinheatHasImage){
+      height_of_plot = height_of_plot + length(gsub("\\s","", input$ImageInputFeaturesSelectionForProtein))
     }
     if(input$ProteinheatHasRNA){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]]))
@@ -494,7 +592,10 @@ function(input, output, session) {
     Proteinheat_res <<- my_heatmap_protein(mode=0,
                                            mutation_genes=if(input$ProteinheatHasMutation){
                                              gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]])
-                                           }, 
+                                           },
+                                           image_features = if(input$ProteinheatHasImage){
+                                             gsub("\\s","", input$ImageInputFeaturesSelectionForProtein)
+                                             },
                                            rna_genes=if(input$ProteinheatHasRNA){
                                              gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]])
                                            }, 
@@ -505,6 +606,9 @@ function(input, output, session) {
     height_of_plot <- length(gsub("\\s","", strsplit(input$ProteinheatInputGenes,",")[[1]])) + length(input$ProteinheatClin)
     if(input$ProteinheatHasMutation){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ProteinheatInputMutation,",")[[1]]))
+    }
+    if(input$ProteinheatHasImage){
+      height_of_plot = height_of_plot + length(gsub("\\s","", input$ImageInputFeaturesSelectionForProtein))
     }
     if(input$ProteinheatHasRNA){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]]))
@@ -537,6 +641,9 @@ function(input, output, session) {
     Clinheat_res <<- my_heatmap_mutation(mutation_genes = if(input$ClinheatHasMutation){
                             gsub("\\s","", strsplit(input$ClinheatInputMutation,",")[[1]])
                           },
+                          image_features = if(input$ClinheatHasImage){
+                            gsub("\\s","", input$ImageInputFeaturesSelectionForClinical)
+                          },
                           rna_genes = if(input$ClinheatHasRNA){
                             gsub("\\s","", strsplit(input$ClinheatInputRNA,",")[[1]])
                           },
@@ -546,9 +653,24 @@ function(input, output, session) {
                           clinical_lab = input$ClinheatClin,
                           order_by = "clinical",
                           order_clin_feature = input$ClinheatSelectOrderFeature)
+    
+    height_of_plot <- length(input$ClinheatClin)
+    if(input$ClinheatHasMutation){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ClinheatInputMutation,",")[[1]]))
+    }
+    if(input$ClinheatHasImage){
+      height_of_plot = height_of_plot + length(gsub("\\s","", input$ImageInputFeaturesSelectionForClinical))
+    }
+    if(input$ClinheatHasRNA){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ClinheatInputRNA,",")[[1]]))
+    }
+    if(input$ClinheatHasProtein){
+      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ClinheatInputProtein,",")[[1]]))
+    }
+    
     output$Clinheat <- renderPlot({
       Clinheat_res[["plot"]]
-    }, height = input$myHeight5, width = input$myWidth5)
+    }, height = input$myHeight5/20*height_of_plot, width = input$myWidth5)
   })
   # download ordered data for heatmap
   output$downloadClinheatData <- downloadHandler(
@@ -560,7 +682,7 @@ function(input, output, session) {
   
   
   ########################################################################
-  # analysis panel 
+  # analysis panel
   ########################################################################
   
   observeEvent(input$goAnalysisButton, {
@@ -619,7 +741,7 @@ function(input, output, session) {
     progress$set(message = "Calculating... This may take a while", value = 0)
     # Close the progress when this reactive exits (even if there's an error)
     on.exit(progress$close())
-    dataTypes <- list("0"= "mutation", "1"="rna", "2"="protein", "3"="clinical")
+    dataTypes <- list("0"= "mutation", "1"="rna", "2"="protein", "3"="clinical", "4"="image")
     get_analysis_res <<- run_analysis(dataTypes[input$AnalysisDataType], get_patient_groups)
     get_analysis_res <<- data.frame(get_analysis_res)
     get_analysis_res <<- get_analysis_res[sort.list(get_analysis_res$pvalue), ]
