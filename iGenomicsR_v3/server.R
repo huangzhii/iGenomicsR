@@ -17,8 +17,7 @@ options(shiny.maxRequestSize=300*1024^2) # to the top of server.R would increase
 options(shiny.sanitize.errors = FALSE)
 options(stringsAsFactors = FALSE)
 
-DB <- list()
-all.file.uploaded <- F
+
 function(input, output, session) {
   output$check1 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
   output$check2 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
@@ -251,7 +250,7 @@ function(input, output, session) {
   })
   
   observeEvent(input$action.navigator.protein,{
-    save(DB, file = "~/Desktop/DB.Rdata")
+    # save(DB, file = "~/Desktop/DB.Rdata")
     output$ProteinDotPlot1 <- renderPlot({
       genes <- c(input$navigator.protein.expression.gene.1, input$navigator.protein.expression.gene.2)
       d <- DB[["Protein"]][genes,,drop=FALSE]
@@ -611,7 +610,10 @@ function(input, output, session) {
     # Close the progress when this reactive exits (even if there's an error)
     on.exit(progress$close())
     dataTypes <- list("0"= "mutation", "1"="rna", "2"="protein", "3"="clinical")
-    get_analysis_res <- run_analysis(dataTypes[input$AnalysisDataType], get_patient_groups)
+    get_analysis_res <<- run_analysis(dataTypes[input$AnalysisDataType], get_patient_groups)
+    get_analysis_res <<- data.frame(get_analysis_res)
+    get_analysis_res <<- get_analysis_res[sort.list(get_analysis_res$pvalue), ]
+    # save(get_analysis_res, file = "~/Desktop/get_analysis_res.Rdata")
 
 
     # output analysis result
@@ -656,7 +658,7 @@ function(input, output, session) {
   output$dowloadAnalysisRes <- downloadHandler(
     filename = function() { "full_significant_genes.csv" },
     content = function(file) {
-      write.csv(get_analysis_res(),file, row.names=TRUE)
+      write.csv(get_analysis_res,file, row.names=TRUE)
     })
   
   

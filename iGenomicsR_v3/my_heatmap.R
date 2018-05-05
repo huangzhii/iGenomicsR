@@ -64,6 +64,9 @@ fun_order_samples <- function(mutation_genes, rna_genes, protein_genes, clinical
     } else if (order_by == "rna"){
       gene_order <- hclust(as.dist(1-cor(t(DB[["RNA"]][genes,selected_samples,drop=FALSE]))), method="average")$order
       ordered_genes <- genes[gene_order]
+    } else if (order_by == "Image"){
+      gene_order <- hclust(as.dist(1-cor(t(DB[["Image"]][genes,selected_samples,drop=FALSE]))), method="average")$order
+      ordered_genes <- genes[gene_order]
     } else if (order_by == "protein"){
       gene_order <- hclust(as.dist(1-cor(t(DB[["Protein"]][genes,selected_samples,drop=FALSE]))), method="average")$order
       ordered_genes <- genes[gene_order]
@@ -84,6 +87,9 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   }
   if(length(rna_genes) > 2){
     rna_genes <- fun_order_Genes(rna_genes, "rna", ordered_samples)
+  }
+  if(length(image_features) > 2){
+    image_features <- fun_order_Genes(image_features, "Image", ordered_samples)
   }
   if(length(protein_genes) > 2){
     protein_genes <- fun_order_Genes(protein_genes, "protein", ordered_samples)

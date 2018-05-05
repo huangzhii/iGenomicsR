@@ -262,7 +262,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                             position = "left",
                                             sidebarPanel(
                                               width=3,
-                                              h4("ImageInputFeatures", style="color: STEELBLUE"),
+                                              h4("Input Image Features", style="color: STEELBLUE"),
                                               textAreaInput(inputId="ImageInputFeatures", label="Paste features here",
                                                             value="Fraction_Fiber, Nuclei_Density, Nuclei_Area", height = 200),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
