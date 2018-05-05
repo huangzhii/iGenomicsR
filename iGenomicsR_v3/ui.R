@@ -184,6 +184,12 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                             )
                                           )
                                  ),
+                                 tabPanel("Image Features",
+                                    h4("Image Features Table", style="color: STEELBLUE"),
+                                    DT::dataTableOutput("ImageFeaturesTable"),
+                                    h4("Image Features Heatmap", style="color: STEELBLUE; padding-top: 10px"),
+                                    plotOutput("ImageFeaturesNavigatorPlot", height='600px', width='1000px')
+                                 ),
                                  tabPanel("RNA expression",
                                           sidebarLayout(
                                             position = "left",

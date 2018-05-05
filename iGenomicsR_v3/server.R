@@ -311,6 +311,15 @@ function(input, output, session) {
     }, height = 500, width = 500)
     
   })
+  output$ImageFeaturesNavigatorPlot <- renderPlot({
+    # dev.off()
+    heatmap(DB[["Image"]], margins = c(8, 15) )
+  })
+  output$ImageFeaturesTable <- DT::renderDataTable({
+    DT::datatable(DB[["Image"]], escape=F, selection = 'none', rownames = T,
+                  options=list(searching=F, ordering=F)) #, extensions = 'Responsive'
+    
+  })
   output$ClinicalInfoTable <- DT::renderDataTable({
     DT::datatable(DB[["Clinical"]], escape=F, selection = 'none', rownames = T,
                   options=list(searching=F, ordering=F)) #, extensions = 'Responsive'
