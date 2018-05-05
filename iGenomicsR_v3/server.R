@@ -97,10 +97,19 @@ function(input, output, session) {
       }
     return(dim(DB[["Clinical"]]))
   }
+  loadData.image<- function(){
+    if (is.null(input$csvfile_image)){
+      return(NULL)}else{
+        DB[["Image"]] <<- read.table(input$csvfile_image$datapath, sep=input$sep, header=TRUE, row.names = 1)
+        session$sendCustomMessage("buttonCallbackHandler", "tab1")
+      }
+    return(dim(DB[["Image"]]))
+  }
   observeEvent(loadData.mutation(),{output$check1 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   observeEvent(loadData.mRNA(),{output$check2 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   observeEvent(loadData.protein(),{output$check3 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   observeEvent(loadData.clinical(),{output$check4 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
+  observeEvent(loadData.image(),{output$check5 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   
   summarize_dataUpload <- eventReactive(input$uploadSummaryButton, {
     smartModal(error=F, title = "Summarizing Uploaded Data", content = "Summarizing uploaded data, please wait for a little while...")
