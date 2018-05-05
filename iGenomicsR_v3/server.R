@@ -23,6 +23,7 @@ function(input, output, session) {
   output$check2 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
   output$check3 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
   output$check4 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
+  output$check5 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
   
   ########################################################################
   # data upload panel 
