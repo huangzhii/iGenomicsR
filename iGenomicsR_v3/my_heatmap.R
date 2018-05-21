@@ -132,7 +132,7 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   if(length(rna_genes) >0 ){
     print("--- 1 ---")
     res[["rna_data"]] <- t(DB[["RNA"]][rna_genes,ordered_samples,drop=FALSE])
-    colnames(res[["rna_data"]]) <- paste("rna_", colnames(res[["rna_data"]]), sep="")
+    # colnames(res[["rna_data"]]) <- paste("rna_", colnames(res[["rna_data"]]), sep="")
     rna <- t(apply(DB[["RNA"]][rna_genes,ordered_samples,drop=FALSE], 1, scale))
     colnames(rna) <- ordered_samples
     rna <- melt(rna)

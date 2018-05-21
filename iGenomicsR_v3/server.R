@@ -405,7 +405,7 @@ function(input, output, session) {
   output$downloadOncoPlotData <- downloadHandler(
     filename = function() { "data_ordered_by_mutation.csv" },
     content = function(file) {
-      write.csv(OncoPlot_res[["table"]], file, row.names=TRUE)
+      write.csv( t(OncoPlot_res[["table"]]), file, row.names=TRUE)
     }) ###
   
   
@@ -449,7 +449,7 @@ function(input, output, session) {
   output$downloadImageheatData <- downloadHandler(
     filename = function() { "data_ordered_by_image_feature.csv" },
     content = function(file) {
-      write.csv(Imageheat_res[["table"]], file, row.names=TRUE)
+      write.csv( t(Imageheat_res[["table"]]), file, row.names=TRUE)
     }) ###
   
   
@@ -553,7 +553,7 @@ function(input, output, session) {
   output$downloadRNAheatData <- downloadHandler(
     filename = function() { "data_ordered_by_rna.csv" },
     content = function(file) {
-      write.csv(RNAheat_res[["table"]], 
+      write.csv(t(RNAheat_res[["table"]]), 
                 file, row.names=TRUE)
     }) ###
   
@@ -636,7 +636,7 @@ function(input, output, session) {
   output$downloadProteinheatData <- downloadHandler(
     filename = function() { "data_ordered_by_protein.csv" },
     content = function(file) {
-      write.csv(Proteinheat_res[["table"]], 
+      write.csv(t(Proteinheat_res[["table"]]), 
                 file, row.names=TRUE)
     }) ###
   
@@ -685,7 +685,7 @@ function(input, output, session) {
   output$downloadClinheatData <- downloadHandler(
     filename = function() { "data_ordered_by_clinical.csv" },
     content = function(file) {
-      write.csv( Clinheat_res[["table"]], file, row.names=TRUE)
+      write.csv( t(Clinheat_res[["table"]]), file, row.names=TRUE)
     }) ###
   
   
@@ -762,10 +762,10 @@ function(input, output, session) {
       res <- get_analysis_res
     }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
 
+    
 
     # disease free survival
     output[["DFSurvivalPlot"]] <- renderPlot({
-
       PatList <- as.list(get_patient_groups)
       PatList <- lapply(PatList, function(x){setdiff(x, "")})
       clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"DiseaseFreeMonths"]),
@@ -776,7 +776,7 @@ function(input, output, session) {
       survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
       survf <- survfit(Surv(time,event) ~ group, data = clin_d)
       print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
-                                 x='Time (Month)', y='Disease free survival'))
+                                 x='Time (Month)', y='Disease Free Survival'))
     }, height = 500, width = 700)
 
 
@@ -792,7 +792,7 @@ function(input, output, session) {
       survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
       survf <- survfit(Surv(time,event) ~ group, data = clin_d)
       print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
-                                 x='Time (Month)', y='Survival'))
+                                 x='Time (Month)', y='Overall Survival'))
     }, height = 500, width = 700)
   })
   
