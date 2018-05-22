@@ -705,18 +705,22 @@ function(input, output, session) {
     }
     tmp1<-matrix(strsplit(input$patientGroups1, "\n")[[1]])
     tmp2<-matrix(strsplit(input$patientGroups2, "\n")[[1]])
-    if(length(tmp1)!=length(tmp2)){
-      sendSweetAlert(session, title = "Error", text = "Unbalanced patient groups. (Hint: each should include title in the first row)", type = "error",
-                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
-      return()
-    }
+    maxlength <- max(length(tmp1), length(tmp2))
+    length(tmp1) <- maxlength
+    length(tmp2) <- maxlength
+    
+    # if(length(tmp1)!=length(tmp2)){
+    #   sendSweetAlert(session, title = "Error", text = "Unbalanced patient groups. (Hint: each should include title in the first row)", type = "error",
+    #                  btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+    #   return()
+    # }
     data = data.frame(cbind(tmp1, tmp2))
-    colnames(data) <- data[1,]
-    data <- data[-1,]
+    colnames(data) <- c("Group 1", "Group 2")
     rownames(data) <- rep(1:dim(data)[1])
     
     all_patients <- as.vector(as.matrix(data))
     all_patients <- all_patients[all_patients != ""]
+    all_patients <- all_patients[!is.na(all_patients)]
     timesOfPat <- table(all_patients)
     if(any(timesOfPat > 1)){
       get_patient_groups = paste(names(timesOfPat)[timesOfPat>1], "showed up multiple times")

@@ -23,7 +23,7 @@ run_gene_mutation_association <- function(d){
 run_analysis <- function(dataType, patients){
   patients_list <- list()
   for(i in colnames(patients)){
-    patients_list[[i]] <- setdiff(patients[,i], "")
+    patients_list[[i]] <- setdiff(patients[,i], NA)
   }
   if(dataType == "mutation"){
     res <- get_related_genes_by_mutation(patients_list)

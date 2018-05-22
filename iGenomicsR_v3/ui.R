@@ -451,8 +451,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                         h4("Define patient groups", style="color: STEELBLUE"),
                         fluidRow(
                           column(6, textAreaInput(inputId="patientGroups1", label = "Group 1", cols=10, rows = 10,
-                                                  value="TP53_mut
-TCGA-A2-A0D1-01
+                                                  value="TCGA-A2-A0D1-01
 TCGA-A2-A0EQ-01
 TCGA-A2-A0EY-01
 TCGA-A7-A0CJ-01
@@ -494,8 +493,7 @@ TCGA-E2-A150-01
 TCGA-E2-A159-01")
                                  ),
                           column(6, textAreaInput(inputId="patientGroups2", label = "Group 2", cols=10, rows = 10,
-                                                  value="TP53_intact
-TCGA-A2-A0EV-01
+                                                  value="TCGA-A2-A0EV-01
 TCGA-A2-A0EX-01
 TCGA-A2-A0T7-01
 TCGA-A2-A0YC-01
