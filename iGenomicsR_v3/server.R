@@ -67,7 +67,7 @@ function(input, output, session) {
         colnames(DB[["Mutation_gene"]]) <<- gsub(".", "-", colnames(DB[["Mutation_gene"]]), fixed = TRUE)
         DB[["Mutation_gene"]][is.na(DB[["Mutation_gene"]])] <<- 0
         session$sendCustomMessage("buttonCallbackHandler", "tab1")
-        }
+      }
     return(dim( DB[["Mutation_gene"]] )) 
   }
   loadData.mRNA <- function(){
@@ -286,43 +286,30 @@ function(input, output, session) {
   })
   
   observeEvent(input$action.navigator.RNA,{
-    genes <- c(input$navigator.RNA.expression.gene.1, input$navigator.RNA.expression.gene.2)
-    if (sum(genes %in% rownames(DB[["RNA"]])) == 2){
-      output$RNADotPlot <- renderPlot({
-        d <- DB[["RNA"]][genes,,drop=FALSE]
-        d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
-        x <- d[genes[1],,drop=TRUE]
-        y <- d[genes[2],,drop=TRUE]
-        corr <- cor(x, y)
-        plot(x, y, xlab=genes[1], ylab=genes[2], main="RNA expression", sub=paste("correlation:", corr))
-      }, height = 500, width = 500)
-    }
-    else{
-      sendSweetAlert(session, title = "Error", text = "Input gene(s) are not found from the data.", type = "error",
-                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
-      return()
-    }
+    output$RNADotPlot <- renderPlot({
+      genes <- c(input$navigator.RNA.expression.gene.1, input$navigator.RNA.expression.gene.2)
+      d <- DB[["RNA"]][genes,,drop=FALSE]
+      d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
+      x <- d[genes[1],,drop=TRUE]
+      y <- d[genes[2],,drop=TRUE]
+      corr <- cor(x, y)
+      plot(x, y, xlab=genes[1], ylab=genes[2], main="RNA expression", sub=paste("correlation:", corr))
+    }, height = 500, width = 500)
   })
   
   observeEvent(input$action.navigator.protein,{
     # save(DB, file = "~/Desktop/DB.Rdata")
-    genes <- c(input$navigator.protein.expression.gene.1, input$navigator.protein.expression.gene.2)
-    if (sum(genes %in% rownames(DB[["RNA"]])) == 2){
-      output$ProteinDotPlot1 <- renderPlot({
-        d <- DB[["Protein"]][genes,,drop=FALSE]
-        d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
-        d <- apply(d, c(1,2), as.numeric)
-        x <- d[genes[1],,drop=TRUE]
-        y <- d[genes[2],,drop=TRUE]
-        corr <- cor(x, y)
-        plot(x, y, xlab=genes[1], ylab=genes[2], main="Protein expression", sub=paste("correlation:", corr))
-      }, height = 500, width = 500)
-    }
-    else{
-      sendSweetAlert(session, title = "Error", text = "Input gene(s) are not found from the data.", type = "error",
-                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
-      return()
-    }
+    output$ProteinDotPlot1 <- renderPlot({
+      genes <- c(input$navigator.protein.expression.gene.1, input$navigator.protein.expression.gene.2)
+      d <- DB[["Protein"]][genes,,drop=FALSE]
+      d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
+      d <- apply(d, c(1,2), as.numeric)
+      x <- d[genes[1],,drop=TRUE]
+      y <- d[genes[2],,drop=TRUE]
+      corr <- cor(x, y)
+      plot(x, y, xlab=genes[1], ylab=genes[2], main="Protein expression", sub=paste("correlation:", corr))
+    }, height = 500, width = 500)
+    
   })
   output$ImageFeaturesNavigatorPlot <- renderPlot({
     # dev.off()
@@ -432,14 +419,14 @@ function(input, output, session) {
                                           mutation_genes = if(input$ImageheatHasMutation){
                                             gsub("\\s","", strsplit(input$ImageInputMutations,",")[[1]])
                                           },
-                                         rna_genes = if(input$ImageheatHasRna){
-                                           gsub("\\s","", strsplit(input$ImageInputRna,",")[[1]])
-                                         },
-                                         protein_genes = if(input$ImageheatHasProtein){
-                                           gsub("\\s","", strsplit(input$ImageInputProteins,",")[[1]])
-                                         },
-                                         clinical_lab = input$ImageheatClin,
-                                         order_by="image")
+                                          rna_genes = if(input$ImageheatHasRna){
+                                            gsub("\\s","", strsplit(input$ImageInputRna,",")[[1]])
+                                          },
+                                          protein_genes = if(input$ImageheatHasProtein){
+                                            gsub("\\s","", strsplit(input$ImageInputProteins,",")[[1]])
+                                          },
+                                          clinical_lab = input$ImageheatClin,
+                                          order_by="image")
     # save(Imageheat_res, file= "~/Desktop/oncoplot.Rdata")
     height_of_plot <- length(gsub("\\s","", input$ImageInputFeatures)) +
       length(input$ImageheatClin)
@@ -489,7 +476,7 @@ function(input, output, session) {
                                    rna_criteria = strsplit(input$RNAheatGeneCutoff,"and")[[1]],
                                    rna_genes = NULL,
                                    show.RNA.name = input$show.RNA.name
-                                   )
+    )
     
     height_of_plot <- 40 + length(input$RNAheatClin)
     if(input$RNAheatHasMutation){
@@ -534,7 +521,7 @@ function(input, output, session) {
                                    clinical_lab=input$RNAheatClin,
                                    rna_criteria = NULL,
                                    rna_genes = gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])
-                                   )
+    )
     
     height_of_plot <- length(gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])) + length(input$RNAheatClin)
     if(input$RNAheatHasMutation){
@@ -617,7 +604,7 @@ function(input, output, session) {
                                            },
                                            image_features = if(input$ProteinheatHasImage){
                                              gsub("\\s","", input$ImageInputFeaturesSelectionForProtein)
-                                             },
+                                           },
                                            rna_genes=if(input$ProteinheatHasRNA){
                                              gsub("\\s","", strsplit(input$ProteinheatInputRNA,",")[[1]])
                                            }, 
@@ -661,20 +648,20 @@ function(input, output, session) {
   # plot heatmap order by clinical feature
   observeEvent(input$action.integration.clinical,{
     Clinheat_res <<- my_heatmap_mutation(mutation_genes = if(input$ClinheatHasMutation){
-                            gsub("\\s","", strsplit(input$ClinheatInputMutation,",")[[1]])
-                          },
-                          image_features = if(input$ClinheatHasImage){
-                            gsub("\\s","", input$ImageInputFeaturesSelectionForClinical)
-                          },
-                          rna_genes = if(input$ClinheatHasRNA){
-                            gsub("\\s","", strsplit(input$ClinheatInputRNA,",")[[1]])
-                          },
-                          protein_genes = if(input$ClinheatHasProtein){
-                            gsub("\\s","", strsplit(input$ClinheatInputProtein,",")[[1]])
-                          },
-                          clinical_lab = input$ClinheatClin,
-                          order_by = "clinical",
-                          order_clin_feature = input$ClinheatSelectOrderFeature)
+      gsub("\\s","", strsplit(input$ClinheatInputMutation,",")[[1]])
+    },
+    image_features = if(input$ClinheatHasImage){
+      gsub("\\s","", input$ImageInputFeaturesSelectionForClinical)
+    },
+    rna_genes = if(input$ClinheatHasRNA){
+      gsub("\\s","", strsplit(input$ClinheatInputRNA,",")[[1]])
+    },
+    protein_genes = if(input$ClinheatHasProtein){
+      gsub("\\s","", strsplit(input$ClinheatInputProtein,",")[[1]])
+    },
+    clinical_lab = input$ClinheatClin,
+    order_by = "clinical",
+    order_clin_feature = input$ClinheatSelectOrderFeature)
     
     height_of_plot <- length(input$ClinheatClin)
     if(input$ClinheatHasMutation){
@@ -772,37 +759,15 @@ function(input, output, session) {
     get_analysis_res <<- data.frame(get_analysis_res)
     get_analysis_res <<- get_analysis_res[sort.list(get_analysis_res$pvalue), ]
     # save(get_analysis_res, file = "~/Desktop/get_analysis_res.Rdata")
-
-
-    # output analysis result
-    if(dataTypes[input$AnalysisDataType] == "mutation"){
-      output$analysisResTable_mutation <- DT::renderDataTable({
-        res <- get_analysis_res
-      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
-    }
-    if(dataTypes[input$AnalysisDataType] == "rna"){
-      output$analysisResTable_rna <- DT::renderDataTable({
-        res <- get_analysis_res
-      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
-    }
-    if(dataTypes[input$AnalysisDataType] == "protein"){
-      output$analysisResTable_protein <- DT::renderDataTable({
-        res <- get_analysis_res
-      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
-    }
-    if(dataTypes[input$AnalysisDataType] == "clinical"){
-      output$analysisResTable_clinical <- DT::renderDataTable({
-        res <- get_analysis_res
-      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
-    }
-    if(dataTypes[input$AnalysisDataType] == "image"){
-      output$analysisResTable_image <- DT::renderDataTable({
-        res <- get_analysis_res
-      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
-    }
-
     
-
+    
+    # output analysis result
+    output$analysisResTable <- DT::renderDataTable({
+      res <- get_analysis_res
+    }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    
+    
+    
     # disease free survival
     output[["DFSurvivalPlot"]] <- renderPlot({
       PatList <- as.list(get_patient_groups)
@@ -817,8 +782,8 @@ function(input, output, session) {
       print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
                                  x='Time (Month)', y='Disease Free Survival'))
     }, height = 500, width = 700)
-
-
+    
+    
     #survival
     output[["SurvivalPlot"]] <- renderPlot({
       PatList <- as.list(get_patient_groups)

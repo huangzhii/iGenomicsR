@@ -83,7 +83,7 @@ get_related_genes_by_rna <- function(PatList){
   }
   for(i in rownames(d)){
     if( sum(! is.na( d[i, PatList[[1]]])) >= 5 & sum(! is.na( d[i, PatList[[2]]] )) >= 5 )
-    res[i, "pvalue"] <- wilcox.test(d[i,PatList[[1]]], d[i,PatList[[2]]])$p.value
+      res[i, "pvalue"] <- wilcox.test(d[i,PatList[[1]]], d[i,PatList[[2]]])$p.value
   }
   res <- res[!is.na(res[, "pvalue"]),]
   res[, "adj_pvalue"] <- p.adjust(res[, "pvalue"], method="BH")
@@ -117,7 +117,7 @@ get_related_genes_by_protein <- function(PatList){
   }
   for(i in rownames(d)){
     if( sum(! is.na( d[i, PatList[[1]]])) >= 5 & sum(! is.na( d[i, PatList[[2]]] )) >= 5 )
-    res[i, "pvalue"] <- wilcox.test(d[i,PatList[[1]]], d[i,PatList[[2]]])$p.value
+      res[i, "pvalue"] <- wilcox.test(d[i,PatList[[1]]], d[i,PatList[[2]]])$p.value
   }
   res <- res[!is.na(res[, "pvalue"]),]
   res[, "adj_pvalue"] <- p.adjust(res[, "pvalue"], method="BH")
@@ -181,18 +181,18 @@ get_related_genes_by_clinical <- function(PatList){
                       sum(d[,i] == "YES" & rownames(d) %in% PatList[[2]], na.rm = TRUE),
                       temp$p.value)
       }    
-      } else {
-        for(l in setdiff(unique(d[,i]), NA)){
-          x <- d[,i] == l
-          y <- rownames(d) %in% PatList[[1]]
-          if(length(setdiff(unique(x), NA)) >1 & length(setdiff(unique(x), NA)) > 1){
-            temp <- fisher.test(x, y)
-            res[[paste(i, l, sep="_")]] <- c(sum(d[,i] == l & rownames(d) %in% PatList[[1]], na.rm = TRUE),
-                                             sum(d[,i] == l & rownames(d) %in% PatList[[2]], na.rm = TRUE),
-                                             temp$p.value)
-          } 
-        }
+    } else {
+      for(l in setdiff(unique(d[,i]), NA)){
+        x <- d[,i] == l
+        y <- rownames(d) %in% PatList[[1]]
+        if(length(setdiff(unique(x), NA)) >1 & length(setdiff(unique(x), NA)) > 1){
+          temp <- fisher.test(x, y)
+          res[[paste(i, l, sep="_")]] <- c(sum(d[,i] == l & rownames(d) %in% PatList[[1]], na.rm = TRUE),
+                                           sum(d[,i] == l & rownames(d) %in% PatList[[2]], na.rm = TRUE),
+                                           temp$p.value)
+        } 
       }
+    }
   }
   
   # test quantitative data
