@@ -286,30 +286,43 @@ function(input, output, session) {
   })
   
   observeEvent(input$action.navigator.RNA,{
-    output$RNADotPlot <- renderPlot({
-      genes <- c(input$navigator.RNA.expression.gene.1, input$navigator.RNA.expression.gene.2)
-      d <- DB[["RNA"]][genes,,drop=FALSE]
-      d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
-      x <- d[genes[1],,drop=TRUE]
-      y <- d[genes[2],,drop=TRUE]
-      corr <- cor(x, y)
-      plot(x, y, xlab=genes[1], ylab=genes[2], main="RNA expression", sub=paste("correlation:", corr))
-    }, height = 500, width = 500)
+    genes <- c(input$navigator.RNA.expression.gene.1, input$navigator.RNA.expression.gene.2)
+    if (sum(genes %in% rownames(DB[["RNA"]])) == 2){
+      output$RNADotPlot <- renderPlot({
+        d <- DB[["RNA"]][genes,,drop=FALSE]
+        d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
+        x <- d[genes[1],,drop=TRUE]
+        y <- d[genes[2],,drop=TRUE]
+        corr <- cor(x, y)
+        plot(x, y, xlab=genes[1], ylab=genes[2], main="RNA expression", sub=paste("correlation:", corr))
+      }, height = 500, width = 500)
+    }
+    else{
+      sendSweetAlert(session, title = "Error", text = "Input gene(s) are not found from the data.", type = "error",
+                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+      return()
+    }
   })
   
   observeEvent(input$action.navigator.protein,{
     # save(DB, file = "~/Desktop/DB.Rdata")
-    output$ProteinDotPlot1 <- renderPlot({
-      genes <- c(input$navigator.protein.expression.gene.1, input$navigator.protein.expression.gene.2)
-      d <- DB[["Protein"]][genes,,drop=FALSE]
-      d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
-      d <- apply(d, c(1,2), as.numeric)
-      x <- d[genes[1],,drop=TRUE]
-      y <- d[genes[2],,drop=TRUE]
-      corr <- cor(x, y)
-      plot(x, y, xlab=genes[1], ylab=genes[2], main="Protein expression", sub=paste("correlation:", corr))
-    }, height = 500, width = 500)
-    
+    genes <- c(input$navigator.protein.expression.gene.1, input$navigator.protein.expression.gene.2)
+    if (sum(genes %in% rownames(DB[["RNA"]])) == 2){
+      output$ProteinDotPlot1 <- renderPlot({
+        d <- DB[["Protein"]][genes,,drop=FALSE]
+        d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
+        d <- apply(d, c(1,2), as.numeric)
+        x <- d[genes[1],,drop=TRUE]
+        y <- d[genes[2],,drop=TRUE]
+        corr <- cor(x, y)
+        plot(x, y, xlab=genes[1], ylab=genes[2], main="Protein expression", sub=paste("correlation:", corr))
+      }, height = 500, width = 500)
+    }
+    else{
+      sendSweetAlert(session, title = "Error", text = "Input gene(s) are not found from the data.", type = "error",
+                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+      return()
+    }
   })
   output$ImageFeaturesNavigatorPlot <- renderPlot({
     # dev.off()
@@ -762,9 +775,31 @@ function(input, output, session) {
 
 
     # output analysis result
-    output$analysisResTable <- DT::renderDataTable({
-      res <- get_analysis_res
-    }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    if(dataTypes[input$AnalysisDataType] == "mutation"){
+      output$analysisResTable_mutation <- DT::renderDataTable({
+        res <- get_analysis_res
+      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    }
+    if(dataTypes[input$AnalysisDataType] == "rna"){
+      output$analysisResTable_rna <- DT::renderDataTable({
+        res <- get_analysis_res
+      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    }
+    if(dataTypes[input$AnalysisDataType] == "protein"){
+      output$analysisResTable_protein <- DT::renderDataTable({
+        res <- get_analysis_res
+      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    }
+    if(dataTypes[input$AnalysisDataType] == "clinical"){
+      output$analysisResTable_clinical <- DT::renderDataTable({
+        res <- get_analysis_res
+      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    }
+    if(dataTypes[input$AnalysisDataType] == "image"){
+      output$analysisResTable_image <- DT::renderDataTable({
+        res <- get_analysis_res
+      }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    }
 
     
 

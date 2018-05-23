@@ -546,11 +546,35 @@ TCGA-E2-A10A-01"))
                         h4("Patients you inputted"),
                         DT::dataTableOutput("inputtedPatientGroups"),
                         conditionalPanel(condition="input.AnalysisDataType==5",
+                                         h4("Overall Survival and Desease Free Survival Curves"),
                                          plotOutput("SurvivalPlot", height='100%', width='100%'),
                                          plotOutput("DFSurvivalPlot", height='100%', width='100%')),
                         conditionalPanel(condition="input.AnalysisDataType!=5",
-                                         h4("Associated genes or clinical features"),
-                                         DT::dataTableOutput("analysisResTable"),
+                                         conditionalPanel(condition="input.AnalysisDataType==0",
+                                                          h4("Associated Mutation Features"),
+                                                          helpText("Adjusted p-value was calculated by the BH method, A.K.A. the false discover rate."),
+                                                          DT::dataTableOutput("analysisResTable_mutation")
+                                         ),
+                                         conditionalPanel(condition="input.AnalysisDataType==1",
+                                                          h4("Associated RNA Expression Features"),
+                                                          helpText("Adjusted p-value was calculated by the BH method, A.K.A. the false discover rate."),
+                                                          DT::dataTableOutput("analysisResTable_rna")
+                                         ),
+                                         conditionalPanel(condition="input.AnalysisDataType==2",
+                                                          h4("Associated Protein Expression Features"),
+                                                          helpText("Adjusted p-value was calculated by the BH method, A.K.A. the false discover rate."),
+                                                          DT::dataTableOutput("analysisResTable_protein")
+                                         ),
+                                         conditionalPanel(condition="input.AnalysisDataType==3",
+                                                          h4("Associated Clinical Features"),
+                                                          helpText("Adjusted p-value was calculated by the BH method, A.K.A. the false discover rate."),
+                                                          DT::dataTableOutput("analysisResTable_clinical")
+                                         ),
+                                         conditionalPanel(condition="input.AnalysisDataType==4",
+                                                          h4("Associated Image Features"),
+                                                          helpText("Adjusted p-value was calculated by the BH method, A.K.A. the false discover rate."),
+                                                          DT::dataTableOutput("analysisResTable_image")
+                                         ),
                                          downloadButton("dowloadAnalysisRes", "Download full table of significant genes as .CSV file")
                         )
                         
