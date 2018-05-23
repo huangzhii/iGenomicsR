@@ -768,7 +768,7 @@ function(input, output, session) {
     # Close the progress when this reactive exits (even if there's an error)
     on.exit(progress$close())
     dataTypes <- list("0"= "mutation", "1"="rna", "2"="protein", "3"="clinical", "4"="image")
-    get_analysis_res <<- run_analysis(dataTypes[input$AnalysisDataType], get_patient_groups)
+    get_analysis_res <<- run_analysis(dataTypes[toString(input$AnalysisDataType)], get_patient_groups)
     get_analysis_res <<- data.frame(get_analysis_res)
     get_analysis_res <<- get_analysis_res[sort.list(get_analysis_res$pvalue), ]
     # save(get_analysis_res, file = "~/Desktop/get_analysis_res.Rdata")
