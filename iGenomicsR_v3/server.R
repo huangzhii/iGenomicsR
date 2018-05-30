@@ -693,8 +693,7 @@ function(input, output, session) {
   ########################################################################
   # analysis panel
   ########################################################################
-  
-  observeEvent(input$goAnalysisButton, {
+  get_patient_groups <- reactive({
     if(is.null(input$patientGroups1) | is.null(input$patientGroups2)){
       sendSweetAlert(session, title = "Error", text = "Insufficient Input Data.", type = "error",
                      btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
@@ -731,12 +730,15 @@ function(input, output, session) {
     else{
       get_patient_groups = data
     }
-    
-    
+    return(get_patient_groups)
+  })
+  
+  
+  observeEvent(input$goAnalysisButton, {
     ## *** output user inputted patient groups ***
     output$inputtedPatientGroups <- DT::renderDataTable({ 
       if(input$patientGroups1 != "" & input$patientGroups1 != ""){
-        out <- t(get_patient_groups)
+        out <- t(get_patient_groups())
         out <- cbind(apply(out, 1, function(x){paste(sum(x!=""), "patients")}), out)
         out
       }
@@ -755,7 +757,7 @@ function(input, output, session) {
     # Close the progress when this reactive exits (even if there's an error)
     on.exit(progress$close())
     dataTypes <- list("0"= "mutation", "1"="rna", "2"="protein", "3"="clinical", "4"="image")
-    get_analysis_res <<- run_analysis(dataTypes[toString(input$AnalysisDataType)], get_patient_groups)
+    get_analysis_res <<- run_analysis(dataTypes[toString(input$AnalysisDataType)], get_patient_groups())
     get_analysis_res <<- data.frame(get_analysis_res)
     get_analysis_res <<- get_analysis_res[sort.list(get_analysis_res$pvalue), ]
     # save(get_analysis_res, file = "~/Desktop/get_analysis_res.Rdata")
@@ -767,38 +769,37 @@ function(input, output, session) {
     }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
     
     
-    
-    # disease free survival
-    output[["DFSurvivalPlot"]] <- renderPlot({
-      PatList <- as.list(get_patient_groups)
-      PatList <- lapply(PatList, function(x){setdiff(x, "")})
-      clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"DiseaseFreeMonths"]),
-                           event=DB[["Clinical"]][unlist(PatList),"DiseaseFreeStatus"]=="WITHTUMOR",
-                           group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
-      )
-      clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
-      survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
-      survf <- survfit(Surv(time,event) ~ group, data = clin_d)
-      print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
-                                 x='Time (Month)', y='Disease Free Survival'))
-    }, height = 500, width = 700)
-    
-    
-    #survival
-    output[["SurvivalPlot"]] <- renderPlot({
-      PatList <- as.list(get_patient_groups)
-      PatList <- lapply(PatList, function(x){setdiff(x, "")})
-      clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"OverallSurvivalMonths"]),
-                           event=DB[["Clinical"]][unlist(PatList),"OverallSurvivalStatus"]=="DECEASED",
-                           group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
-      )
-      clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
-      survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
-      survf <- survfit(Surv(time,event) ~ group, data = clin_d)
-      print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
-                                 x='Time (Month)', y='Overall Survival'))
-    }, height = 500, width = 700)
   })
+  # disease free survival
+  output[["DFSurvivalPlot"]] <- renderPlot({
+    PatList <- as.list(get_patient_groups())
+    PatList <- lapply(PatList, function(x){setdiff(x, "")})
+    clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"DiseaseFreeMonths"]),
+                         event=DB[["Clinical"]][unlist(PatList),"DiseaseFreeStatus"]=="WITHTUMOR",
+                         group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
+    )
+    clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
+    survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
+    survf <- survfit(Surv(time,event) ~ group, data = clin_d)
+    print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
+                               x='Time (Month)', y='Disease Free Survival'))
+  }, height = 500, width = 700)
+  
+  
+  #survival
+  output[["SurvivalPlot"]] <- renderPlot({
+    PatList <- as.list(get_patient_groups())
+    PatList <- lapply(PatList, function(x){setdiff(x, "")})
+    clin_d <- data.frame(time=as.numeric(DB[["Clinical"]][unlist(PatList),"OverallSurvivalMonths"]),
+                         event=DB[["Clinical"]][unlist(PatList),"OverallSurvivalStatus"]=="DECEASED",
+                         group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
+    )
+    clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
+    survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
+    survf <- survfit(Surv(time,event) ~ group, data = clin_d)
+    print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
+                               x='Time (Month)', y='Overall Survival'))
+  }, height = 500, width = 700)
   
   output$dowloadAnalysisRes <- downloadHandler(
     filename = function() { "full_significant_genes.csv" },
