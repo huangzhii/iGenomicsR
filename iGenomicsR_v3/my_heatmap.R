@@ -57,42 +57,106 @@ fun_order_samples <- function(mutation_genes, rna_genes, protein_genes, clinical
   res
 }
 
-  fun_order_Genes <- function(genes, order_by, selected_samples){
-    if(order_by == "mutation"){
+fun_order_Genes <- function(genes, order_by, selected_samples){
+  t <- try(
+    if(order_by == "Mutation_gene"){
       geneScore <- apply(DB[["Mutation_gene"]][genes,selected_samples,drop=FALSE], 1, sum, na.rm=TRUE)
       ordered_genes <- names(sort(geneScore, decreasing = FALSE))
-    } else if (order_by == "rna"){
+    } else if (order_by == "RNA"){
       gene_order <- hclust(as.dist(1-cor(t(DB[["RNA"]][genes,selected_samples,drop=FALSE]))), method="average")$order
       ordered_genes <- genes[gene_order]
     } else if (order_by == "Image"){
       gene_order <- hclust(as.dist(1-cor(t(DB[["Image"]][genes,selected_samples,drop=FALSE]))), method="average")$order
       ordered_genes <- genes[gene_order]
-    } else if (order_by == "protein"){
+    } else if (order_by == "Protein"){
       gene_order <- hclust(as.dist(1-cor(t(DB[["Protein"]][genes,selected_samples,drop=FALSE]))), method="average")$order
       ordered_genes <- genes[gene_order]
-    }
-    ordered_genes
+    })
+  if("try-error" %in% class(t)) {
+    removeModal()
+    not_in_list = genes[!(genes %in% rownames(DB[[order_by]]))]
+    not_in_list = paste(not_in_list, collapse =', ')
+    print(sprintf("Genes [ %s ] not found in DB.", not_in_list))
+    showModal(modalDialog(
+      title = "Input genes/features not found.", footer = modalButton("OK"), easyClose = TRUE,
+      div(class = "busy",
+          p(sprintf("Error in fun_order_Genes: Genes [ %s ] are not belong into the database you previously defined. Please remove them from your input.", not_in_list)),
+          style = "margin: auto; text-align: center"
+      )
+    ))
+    return()
+  }
+  else {
+    return(ordered_genes)
   }
   
+}
+
 ########################################################################
 # mutation based 
 ########################################################################
 my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinical_lab, order_by, rna_size=1, protein_size = 1, selected_samples=colnames(DB[["RNA"]]), clust_para=list(method="hc"), order_clin_feature, image_features=vector(), show.RNA.name = 1, show.protein.name = 1){
+  # remove duplicated inputs
+  if(length(unique(mutation_genes)) != length(mutation_genes)){
+    removeModal()
+    showModal(modalDialog(
+      title = "Warning", footer = modalButton("OK"), easyClose = TRUE,
+      div(class = "busy",
+          p("Exists duplicated mutation genes. We help you removed it."),
+          style = "margin: auto; text-align: center"
+      )
+    ))
+    mutation_genes <- unique(mutation_genes)
+  }
+  if(length(unique(rna_genes)) != length(rna_genes)){
+    removeModal()
+    showModal(modalDialog(
+      title = "Warning", footer = modalButton("OK"), easyClose = TRUE,
+      div(class = "busy",
+          p("Exists duplicated RNA genes. We help you removed it."),
+          style = "margin: auto; text-align: center"
+      )
+    ))
+    rna_genes <- unique(rna_genes)
+  }
+  if(length(unique(protein_genes)) != length(protein_genes)){
+    removeModal()
+    showModal(modalDialog(
+      title = "Warning", footer = modalButton("OK"), easyClose = TRUE,
+      div(class = "busy",
+          p("Exists duplicated protein genes. We help you removed it."),
+          style = "margin: auto; text-align: center"
+      )
+    ))
+    protein_genes <- unique(protein_genes)
+  }
+  if(length(unique(image_features)) != length(image_features)){
+    removeModal()
+    showModal(modalDialog(
+      title = "Warning", footer = modalButton("OK"), easyClose = TRUE,
+      div(class = "busy",
+          p("Exists duplicated image features. We help you removed it."),
+          style = "margin: auto; text-align: center"
+      )
+    ))
+    image_features <- unique(image_features)
+  }
+  
   
   sample_order_res <- fun_order_samples(mutation_genes, rna_genes, protein_genes, clinical_lab, order_by, selected_samples, clust_para,order_clin_feature, image_features)
   ordered_samples <- sample_order_res[["ordered_samples"]] 
   
   if(length(mutation_genes) > 1){
-    mutation_genes <- fun_order_Genes(mutation_genes, "mutation", ordered_samples)
+    mutation_genes <- fun_order_Genes(mutation_genes, "Mutation_gene", ordered_samples)
   }
   if(length(rna_genes) > 2){
-    rna_genes <- fun_order_Genes(rna_genes, "rna", ordered_samples)
+    rna_genes <- fun_order_Genes(rna_genes, "RNA", ordered_samples)
   }
   if(length(image_features) > 2){
     image_features <- fun_order_Genes(image_features, "Image", ordered_samples)
   }
   if(length(protein_genes) > 2){
-    protein_genes <- fun_order_Genes(protein_genes, "protein", ordered_samples)
+    protein_genes <- fun_order_Genes(protein_genes, "Protein", ordered_samples)
   }
   
   PL <- list()
@@ -110,7 +174,22 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   res <- list()
   # heatmap for image feature
   if(length(image_features)>0){
-    image <- DB[["Image"]][image_features,ordered_samples,drop=FALSE]
+    image_features = rev(image_features) # This is for descending order of names in y axis
+    t <- try(image <- DB[["Image"]][image_features,ordered_samples,drop=FALSE])
+    if("try-error" %in% class(t)) {
+      removeModal()
+      not_in_list = image_features[!(image_features %in% rownames(DB[["Image"]]))]
+      not_in_list = paste(not_in_list, collapse =', ')
+      print(sprintf("genes [ %s ] not found in DB.", not_in_list))
+      showModal(modalDialog(
+        title = "Input genes/features not found.", footer = modalButton("OK"), easyClose = TRUE,
+        div(class = "busy",
+            p(sprintf("genes [ %s ] are not belong into the database you previously defined. Please remove them from your input.", not_in_list)),
+            style = "margin: auto; text-align: center"
+        )
+      ))
+      return()
+    }
     res[["image_data"]] <- t(image)
     image <- t(apply(image, 1, scale))
     colnames(image) <- ordered_samples
@@ -131,7 +210,22 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   # heatmap for RNA
   if(length(rna_genes) >0 ){
     print("--- 1 ---")
-    res[["rna_data"]] <- t(DB[["RNA"]][rna_genes,ordered_samples,drop=FALSE])
+    rna_genes = rev(rna_genes) # This is for descending order of names in y axis
+    t <- try(res[["rna_data"]] <- t(DB[["RNA"]][rna_genes,ordered_samples,drop=FALSE]))
+    if("try-error" %in% class(t)) {
+      removeModal()
+      not_in_list = rna_genes[!(rna_genes %in% rownames(DB[["RNA"]]))]
+      not_in_list = paste(not_in_list, collapse =', ')
+      print(sprintf("genes [ %s ] not found in DB.", not_in_list))
+      showModal(modalDialog(
+        title = "Input genes/features not found.", footer = modalButton("OK"), easyClose = TRUE,
+        div(class = "busy",
+            p(sprintf("genes [ %s ] are not belong into the database you previously defined. Please remove them from your input.", not_in_list)),
+            style = "margin: auto; text-align: center"
+        )
+      ))
+      return()
+    }
     # colnames(res[["rna_data"]]) <- paste("rna_", colnames(res[["rna_data"]]), sep="")
     rna <- t(apply(DB[["RNA"]][rna_genes,ordered_samples,drop=FALSE], 1, scale))
     colnames(rna) <- ordered_samples
@@ -165,11 +259,11 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
     } else {
       print("--- 4 ---")
       if(show.RNA.name == 1){
-      PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
-        geom_tile(aes(fill = value)) + 
-        scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
-        guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
-        theme_bw() + labs(x="", y="") + my_theme + theme(plot.margin=unit(c(0,0,0,0), "cm"))
+        PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
+          geom_tile(aes(fill = value)) + 
+          scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
+          guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
+          theme_bw() + labs(x="", y="") + my_theme + theme(plot.margin=unit(c(0,0,0,0), "cm"))
       }
       else{
         PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
@@ -192,11 +286,26 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
       plot_heights <- c(plot_heights, 3)
     }
   }
-
+  
   # heatmap for mutations
   if(length(mutation_genes) > 0){
-    res[["mutation_data"]] <- t(DB[["Mutation_gene"]][mutation_genes,ordered_samples,drop=FALSE])
+    t <- try(res[["mutation_data"]] <- t(DB[["Mutation_gene"]][mutation_genes,ordered_samples,drop=FALSE]))
+    if("try-error" %in% class(t)) {
+      removeModal()
+      not_in_list = mutation_genes[!(mutation_genes %in% rownames(DB[["Mutation_gene"]]))]
+      not_in_list = paste(not_in_list, collapse =', ')
+      print(sprintf("genes [ %s ] not found in DB.", not_in_list))
+      showModal(modalDialog(
+        title = "Input genes/features not found.", footer = modalButton("OK"), easyClose = TRUE,
+        div(class = "busy",
+            p(sprintf("genes [ %s ] are not belong into the database you previously defined. Please remove them from your input.", not_in_list)),
+            style = "margin: auto; text-align: center"
+        )
+      ))
+      return()
+    }
     colnames(res[["mutation_data"]]) <- paste("mutation_", colnames(res[["mutation_data"]]), sep="")
+    mutation_genes = rev(mutation_genes) # This is for descending order of names in y axis
     mutations <- melt(t(DB[["Mutation_gene"]][mutation_genes,ordered_samples,drop=FALSE]))
     mutations[,"value"] <- as.factor(mutations[,"value"])
     mutations[["Var2"]] <- factor(mutations[["Var2"]], levels=mutation_genes, ordered = TRUE)
@@ -214,14 +323,30 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
   if(length(protein_genes)>0){
     print("--- 5 ---")
     # plot both epithelial expression and stroma expression
-    protein <- DB[["Protein"]][protein_genes,ordered_samples,drop=FALSE]
+    protein_genes = rev(protein_genes) # This is for descending order of names in y axis
+    t <- try(protein <- DB[["Protein"]][protein_genes,ordered_samples,drop=FALSE])
+    if("try-error" %in% class(t)) {
+      removeModal()
+      not_in_list = protein_genes[!(protein_genes %in% rownames(DB[["Protein"]]))]
+      not_in_list = paste(not_in_list, collapse =', ')
+      print(sprintf("genes [ %s ] not found in DB.", not_in_list))
+      showModal(modalDialog(
+        title = "Input genes/features not found.", footer = modalButton("OK"), easyClose = TRUE,
+        div(class = "busy",
+            p(sprintf("genes [ %s ] are not belong into the database you previously defined. Please remove them from your input.", not_in_list)),
+            style = "margin: auto; text-align: center"
+        )
+      ))
+      return()
+    }
     res[["protein_data"]] <- t(protein)
     protein <- t(apply(protein, 1, scale))
     colnames(protein) <- ordered_samples
     protein <- melt(protein)
     protein[["Var2"]] <- factor(protein[["Var2"]], levels=ordered_samples, ordered = TRUE)
     protein[["Var1"]] <- factor(protein[["Var1"]], levels=protein_genes, ordered = TRUE)
-    
+    print("levels: (order from bottom to top in plot.")
+    print(levels(protein$Var1))
     if(show.protein.name == 1){
       print("--- 6 ---")
       PL[["protein_plot"]] <- ggplot(protein,  aes(Var2, Var1)) + 
@@ -249,8 +374,22 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
       plot_heights <- c(plot_heights, length(protein_genes))
     }
   }
-
-  res[["clin_data"]] <- DB[["Clinical"]][ordered_samples,clinical_lab, drop=FALSE]
+  
+  t <- try(res[["clin_data"]] <- DB[["Clinical"]][ordered_samples,clinical_lab, drop=FALSE])
+  if("try-error" %in% class(t)) {
+    removeModal()
+    not_in_list = ordered_samples[!(ordered_samples %in% rownames(DB[["Clinical"]]))]
+    not_in_list = paste(not_in_list, collapse =', ')
+    print(sprintf("Samples [ %s ] not found in DB.", not_in_list))
+    showModal(modalDialog(
+      title = "Input samples not found.", footer = modalButton("OK"), easyClose = TRUE,
+      div(class = "busy",
+          p(sprintf("Samples [ %s ] are not belong into the database (Clinical) you previously defined. Please remove them from your input.", not_in_list)),
+          style = "margin: auto; text-align: center"
+      )
+    ))
+    return()
+  }
   # heatmap for categorical clinical data
   clinical_cat_lab <- intersect(DB[["Clinical_cat_lab"]], clinical_lab)
   clinical_cat <- list()
@@ -266,7 +405,7 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
       plot_heights <- c(plot_heights, 1 ) 
     }
   }
-
+  
   # heatmap for quantitative clinical data
   clinical_quan_lab <- intersect(DB[["Clinical_quan_lab"]], clinical_lab)
   if(length(clinical_quan_lab)>0){
@@ -306,7 +445,7 @@ parse_criteria <- function(rules){
   }
   to_return
 }
-my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, image_features, protein_genes, clinical_lab, rna_criteria, rna_genes, show.RNA.name = 1, show.protein.name = 1){
+my_heatmap_rna <- function(mode, clust_para=list(method="hc"), mutation_genes, image_features = vector(), protein_genes, clinical_lab, rna_criteria, rna_genes, show.RNA.name = 1, show.protein.name = 1){
   rna_samples <- colnames(DB[["RNA"]])[!apply(DB[["RNA"]], 2, function(x){all(is.na(x))})]
   
   # order by user specified genes
@@ -354,7 +493,7 @@ divide_patients_by_cuttree <- function(hclust_tree){
 ########################################################################
 # protein based
 ########################################################################
-my_heatmap_protein <- function(mode, mutation_genes, image_features, rna_genes, clinical_lab, protein_criteria, protein_genes, show.RNA.name=1, show.protein.name = 1){
+my_heatmap_protein <- function(mode, mutation_genes, image_features = vector(), rna_genes, clinical_lab, protein_criteria, protein_genes, show.RNA.name=1, show.protein.name = 1){
   protein_samples <- colnames(DB[["Protein"]])[!apply(DB[["Protein"]], 2, function(x){any(is.na(x))})]
   print(length(protein_samples))
   # order by user specified genes
