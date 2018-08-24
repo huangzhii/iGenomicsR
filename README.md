@@ -8,12 +8,17 @@ This application was developed to help biologists to do integrative analysis of 
 
 #### Software references
 
-R Development Core Team. *[R](http://www.r-project.org/): A Language and Environment for Statistical Computing.* R Foundation for Statistical Computing, Vienna (2013) 
-RStudio and Inc. *[shiny](http://www.rstudio.com/shiny/): Web Application Framework for R.* R package version 0.5.0 (2013) 
-Hadley Wickham. *[ggplot2](http://docs.ggplot2.org/current/): a plotting system for R.* R package version 1.0.1 
+R Development Core Team. *[R](http://www.r-project.org/): A Language and Environment for Statistical Computing.* R Foundation for Statistical Computing, Vienna (2013)
+
+RStudio and Inc. *[shiny](http://www.rstudio.com/shiny/): Web Application Framework for R.* R package version 0.5.0 (2013)
+
+Hadley Wickham. *[ggplot2](http://docs.ggplot2.org/current/): a plotting system for R.* R package version 1.0.1
+
 Erich Neuwirth. *[RColorBrewer](http://cran.r-project.org/web/packages/RColorBrewer/index.html): ColorBrewer palettes.* R package version 1.1-2
-Hadley Wickham. *[reshape2](https://cran.r-project.org/web/packages/reshape2/index.html): Flexibly Reshape Data.* R package version 1.4.1 
-David B. Dahl. *[xtable](https://cran.r-project.org/web/packages/xtable/index.html): Export tables to LaTeX or HTML.* R package version 1.7-4 
+
+Hadley Wickham. *[reshape2](https://cran.r-project.org/web/packages/reshape2/index.html): Flexibly Reshape Data.* R package version 1.4.1
+
+David B. Dahl. *[xtable](https://cran.r-project.org/web/packages/xtable/index.html): Export tables to LaTeX or HTML.* R package version 1.7-4
 
 1\. Web interface overview
 
