@@ -540,7 +540,12 @@ function(input, output, session) {
     
     height_of_plot <- 40 + length(input$RNAheatClin)
     if(input$RNAheatHasMutation){
-      height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]]))
+      if((clust_para[["method"]] == "hc")){
+        height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$RNAheatInputMutation,",")[[1]]))
+      }
+      if((clust_para[["method"]] == "km")){
+        height_of_plot = height_of_plot + 1
+      }
     }
     if(input$RNAheatHasImage){
       height_of_plot = height_of_plot + length(gsub("\\s","", input$ImageInputFeaturesSelectionForRNA))
@@ -553,11 +558,11 @@ function(input, output, session) {
     }, height = input$myHeight3/40*height_of_plot, width = input$myWidth3)
     
     # gene clustering dendrogram
-    output$RNAdendro <- renderPlot({
-      if((clust_para[["method"]] == "hc")){
-        plot(RNAheat_res[["sample_order_res"]][["hc"]], cex=0.5)
-      }
-    }, height = input$myHeight3/2, width = input$myWidth3)
+    if((clust_para[["method"]] == "hc")){
+      output$RNAdendro <- renderPlot({
+          plot(RNAheat_res[["sample_order_res"]][["hc"]], cex=0.5)
+      }, height = input$myHeight3/2, width = input$myWidth3)
+    }
   })
   
   observeEvent(input$action.integration.RNA.inputgenes,{
@@ -608,7 +613,12 @@ function(input, output, session) {
     }
     if((clust_para[["method"]] == "km")){
       output$RNAdendro <- renderPlot({
-      }, height = 0, width = 0)
+        par(mar = c(0,0,0,0))
+        plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+        text(x = 0.5, y = 0.5, paste("K-means algorithm selected.\n",
+                                     "RNA dendrogram not available."), 
+             cex = 1.6, col = "black")
+      })
     }
   })
   

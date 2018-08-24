@@ -249,19 +249,8 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
       print("length of rna genes:")
       print(length(rna_genes))
       plot_heights <- c(plot_heights, length(rna_genes))
-      
-      if(clust_para[["method"]]=="km"){
-        print("--- 3 ---")
-        d <- data.frame(patient_id=ordered_samples, cluster=paste("Group ",sort(sample_order_res[["cluster"]]), sep=""))
-        res[["rna_group"]] <- d[,"cluster",drop=FALSE]
-        d[["patient_id"]] <- factor(d[["patient_id"]], levels=ordered_samples, ordered = TRUE)
-        PL[["sample_group"]] <- ggplot(d, aes(patient_id, "cluster")) + 
-          geom_tile(aes(fill = cluster), colour = "white") +
-          theme_bw() + labs(x="", y="") + my_theme
-        plot_heights <- c(plot_heights, 1)
-      }
     } else {
-      print("--- 4 ---")
+      print("--- 3 ---")
       if(show.RNA.name == 1){
         PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
           geom_tile(aes(fill = value)) + 
@@ -279,15 +268,28 @@ my_heatmap_mutation <- function(mutation_genes, rna_genes, protein_genes, clinic
       }
       plot_heights <- c(plot_heights, length(rna_genes) * rna_size)
       
-      d <- data.frame(patient_id=ordered_samples, divide_patients_by_cuttree(sample_order_res[["hc"]])[ordered_samples,])
-      res[["rna_group"]] <- d[,2:ncol(d),drop=FALSE]
-      d <- melt(d)
-      d[["patient_id"]] <- factor(d[["patient_id"]], levels=ordered_samples, ordered = TRUE)
-      d[["value"]] <- as.factor(d[["value"]])
-      PL[["sample_group"]] <- ggplot(d, aes(patient_id, variable)) + 
-        geom_tile(aes(fill = value), colour = "white") +
-        theme_bw() + labs(x="", y="") + my_theme
-      plot_heights <- c(plot_heights, 3)
+      
+      if(clust_para[["method"]]=="km"){
+        print("--- 4 ---")
+        d <- data.frame(patient_id=ordered_samples, cluster=paste("Group ",sort(sample_order_res[["cluster"]]), sep=""))
+        res[["rna_group"]] <- d[,"cluster",drop=FALSE]
+        d[["patient_id"]] <- factor(d[["patient_id"]], levels=ordered_samples, ordered = TRUE)
+        PL[["sample_group"]] <- ggplot(d, aes(patient_id, "cluster")) + 
+          geom_tile(aes(fill = cluster), colour = "white") +
+          theme_bw() + labs(x="", y="") + my_theme
+        plot_heights <- c(plot_heights, 1)
+      }
+      else{
+        d <- data.frame(patient_id=ordered_samples, divide_patients_by_cuttree(sample_order_res[["hc"]])[ordered_samples,])
+        res[["rna_group"]] <- d[,2:ncol(d),drop=FALSE]
+        d <- melt(d)
+        d[["patient_id"]] <- factor(d[["patient_id"]], levels=ordered_samples, ordered = TRUE)
+        d[["value"]] <- as.factor(d[["value"]])
+        PL[["sample_group"]] <- ggplot(d, aes(patient_id, variable)) + 
+          geom_tile(aes(fill = value), colour = "white") +
+          theme_bw() + labs(x="", y="") + my_theme
+        plot_heights <- c(plot_heights, 3)
+      }
     }
   }
   
