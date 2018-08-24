@@ -1,3 +1,20 @@
+iGenomicsR:
+-----------
+
+An integrative platform to explore, visualize, and analyze multidimensional genomics data for disease
+-----------------------------------------------------------------------------------------------------
+
+This application was developed to help biologists to do integrative analysis of multi-dimentsional genomics data. We provide plots and statistical test to identify patterns from their data and also test their hypothesis. We would like to thank everyone who has made constructive suggestions so far. We will document the addition of new features in the News tab.
+
+#### Software references
+
+R Development Core Team. *[R](http://www.r-project.org/): A Language and Environment for Statistical Computing.* R Foundation for Statistical Computing, Vienna (2013) 
+RStudio and Inc. *[shiny](http://www.rstudio.com/shiny/): Web Application Framework for R.* R package version 0.5.0 (2013) 
+Hadley Wickham. *[ggplot2](http://docs.ggplot2.org/current/): a plotting system for R.* R package version 1.0.1 
+Erich Neuwirth. *[RColorBrewer](http://cran.r-project.org/web/packages/RColorBrewer/index.html): ColorBrewer palettes.* R package version 1.1-2
+Hadley Wickham. *[reshape2](https://cran.r-project.org/web/packages/reshape2/index.html): Flexibly Reshape Data.* R package version 1.4.1 
+David B. Dahl. *[xtable](https://cran.r-project.org/web/packages/xtable/index.html): Export tables to LaTeX or HTML.* R package version 1.7-4 
+
 1\. Web interface overview
 
 ![1-1.png](resources/4129A8BDFC983568C26FED84FF173DA8.png)
