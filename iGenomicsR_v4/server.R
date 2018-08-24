@@ -580,12 +580,11 @@ function(input, output, session) {
                                    }, 
                                    clinical_lab=input$RNAheatClin,
                                    rna_criteria = NULL,
-                                   rna_genes = gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]],
-                                    sort.mutation = input$do_hclust_rna_mutation,
-                                    sort.rna = F,
-                                    sort.image = input$do_hclust_rna_image,
-                                    sort.protein = input$do_hclust_rna_protein)
-    )
+                                   rna_genes = gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]]),
+                                  sort.mutation = input$do_hclust_rna_mutation,
+                                  sort.rna = F,
+                                  sort.image = input$do_hclust_rna_image,
+                                  sort.protein = input$do_hclust_rna_protein)
     
     height_of_plot <- length(gsub("\\s","", strsplit(input$RNAheatInputGenes,",")[[1]])) + length(input$RNAheatClin)
     if(input$RNAheatHasMutation){
