@@ -507,13 +507,13 @@ divide_patients_by_cuttree <- function(hclust_tree){
 my_heatmap_protein <- function(mode, mutation_genes, image_features = vector(), rna_genes,
                                clinical_lab, protein_criteria, protein_genes, show.RNA.name=1,
                                show.protein.name = 1, sort.mutation=F, sort.rna=F,
-                               sort.image=F, sort.protein=F){
+                               clust_para=list(method="hc"), sort.image=F, sort.protein=F){
   protein_samples <- colnames(DB[["Protein"]])[!apply(DB[["Protein"]], 2, function(x){any(is.na(x))})]
   print(length(protein_samples))
   # order by user specified genes
   if(mode==0){
     my_heatmap_mutation(mutation_genes=mutation_genes, image_features=image_features, protein_genes=protein_genes, 
-                        rna_genes=rna_genes, clinical_lab=clinical_lab, protein_size=0.01,
+                        rna_genes=rna_genes, clinical_lab=clinical_lab, protein_size=0.01, clust_para=clust_para,
                         order_by="protein", selected_samples = protein_samples, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name,
                         sort.mutation, sort.rna, sort.image, sort.protein)
   } else {
@@ -537,7 +537,7 @@ my_heatmap_protein <- function(mode, mutation_genes, image_features = vector(), 
       print(temp_res[["cutoff"]])
     }
     my_heatmap_mutation(mutation_genes=mutation_genes, image_features=image_features, rna_genes=rna_genes, 
-                        protein_genes=protein_genes, clinical_lab=clinical_lab, protein_size=0.05,
+                        protein_genes=protein_genes, clinical_lab=clinical_lab, protein_size=0.05, clust_para=clust_para,
                         order_by="protein", selected_samples = protein_samples, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name,
                         sort.mutation, sort.rna, sort.image, sort.protein)
   }
