@@ -1,5 +1,7 @@
 # Zhi Huang 06/09/2018
 library(shinyWidgets)
+library(markdown)
+
 navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                            height = 28,
                            style = "margin:0px 0px; padding-bottom: 5px"), href=""),escape=F),
@@ -651,8 +653,8 @@ TCGA-E2-A10A-01"))
                       tags$li("Modifications finished.")
                     )
            ),
-           tabPanel("FAQ"
-                    
+           tabPanel("Tutorial",
+                    includeMarkdown("www/README.md")
            ),
            tabPanel("About",
                     h3("About Us", style="color: STEELBLUE; padding-bottom: 20px"),
