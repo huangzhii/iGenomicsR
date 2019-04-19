@@ -13,7 +13,6 @@ bin2dec <- function(x){
 
 fun_order_samples <- function(mutation_genes, rna_genes, protein_genes, clinical_lab, order_by, selected_samples,clust_para=list(method="hc"), order_clin_feature, image_features, DB){
   res <- list()
-  
   if(order_by == "mutation"){
     geneScore <- apply(DB[["Mutation_gene"]][mutation_genes,selected_samples,drop=FALSE], 1, sum, na.rm=TRUE)
     mutation_genes <- names(sort(geneScore, decreasing = TRUE))
@@ -459,7 +458,7 @@ my_heatmap_rna <- function(DB, mode, clust_para=list(method="hc"), mutation_gene
   
   # order by user specified genes
   if(mode==0){
-    my_heatmap_mutation(mutation_genes=mutation_genes, image_features=image_features, rna_genes=rna_genes, 
+    my_heatmap_mutation(DB, mutation_genes=mutation_genes, image_features=image_features, rna_genes=rna_genes, 
                         protein_genes=protein_genes, clinical_lab=clinical_lab, 
                         order_by="rna", selected_samples = rna_samples,
                         clust_para=clust_para, show.RNA.name = show.RNA.name, show.protein.name = show.protein.name,

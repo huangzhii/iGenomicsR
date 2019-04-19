@@ -650,6 +650,7 @@ function(input, output, session) {
     if (length(DB.Clinical_cat_lab()) != 0) DB.temp[["Clinical_cat_lab"]] = DB.Clinical_cat_lab()
     if (length(DB.Clinical_quan_lab()) != 0) DB.temp[["Clinical_quan_lab"]] = DB.Clinical_quan_lab()
     
+    
     RNAheat_res.temp <- my_heatmap_rna(DB.temp, mode = 0, # gene lists
                                    clust_para = rna_RNAheatClustPara,
                                    mutation_genes = if(input$RNAheatHasMutation){
