@@ -10,64 +10,69 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                       position = "left",
                       sidebarPanel(width = 3,
                                    h4("File Uploader", style="color: STEELBLUE"),
-                                   fileInput("csvfile_mutation", "Mutation Table",
-                                             multiple = FALSE,
-                                             accept = c("text/csv",
-                                                        "text/comma-separated-values,text/plain",
-                                                        ".csv", ".xlsx", ".xls")),
-                                   fileInput("csvfile_image", "Image Profile",
-                                             multiple = FALSE,
-                                             accept = c("text/csv",
-                                                        "text/comma-separated-values,text/plain",
-                                                        ".csv", ".xlsx", ".xls")),
-                                   fileInput("csvfile_mRNA", "RNA Expression Table",
-                                             multiple = FALSE,
-                                             accept = c("text/csv",
-                                                        "text/comma-separated-values,text/plain",
-                                                        ".csv", ".xlsx", ".xls")),
-                                   fileInput("csvfile_protein", "Protein Expression Table",
-                                             multiple = FALSE,
-                                             accept = c("text/csv",
-                                                        "text/comma-separated-values,text/plain",
-                                                        ".csv", ".xlsx", ".xls")),
-                                   fileInput("csvfile_clinical", "Clinical Profile (* Required)",
-                                             multiple = FALSE,
-                                             accept = c("text/csv",
-                                                        "text/comma-separated-values,text/plain",
-                                                        ".csv", ".xlsx", ".xls")),
-                                   
-                                   # Include clarifying text ----
-                                   helpText("Note: Maximum file size allowed for uploading is 300MB."),
-                                   
-                                   # Input: Checkbox if file has header ----
-                                   checkboxInput("header", "Header", TRUE),
-                                   
-                                   fluidRow(
-                                     # Input: Select separator ----
-                                     column(6, radioButtons("sep", "Separator",
-                                                            choices = c(Comma = ",",
-                                                                        Semicolon = ";",
-                                                                        Tab = "\t",
-                                                                        Space = " "),
-                                                            selected = ",")),
-                                     # Input: Select quotes ----
-                                     column(6, radioButtons("quote", "Quote",
-                                                            choices = c(None = "",
-                                                                        "Double Quote" = '"',
-                                                                        "Single Quote" = "'"),
-                                                            selected = '"'))
-                                   ),
-                                   # Horizontal line ----
-                                   tags$hr(),
-                                   p('If you want a sample .csv file to upload,',
-                                     'you can first download the sample',
-                                     a(href = 'data/Protein.csv', 'Protein.csv'), ', ',
-                                     a(href = 'data/mutation.csv', 'mutation.csv'), ', ',
-                                     a(href = 'data/RNA.csv', 'RNA.csv'), ', ',
-                                     a(href = 'data/Clinical.csv', 'Clinical.csv'), ' and ',
-                                     a(href = 'data/Image_Features_Ass_General_CPTAC_merged_by_mean.csv', 'image_features.csv' ),
-                                     'files, and then try uploading them.'),
-                                   actionButton("action1", "Confirm when Complete")
+                                   actionButton("action_load_example", "Load Example"),
+                                   useShinyjs(),
+                                   div(
+                                     id = "upload_panel",
+                                     fileInput("csvfile_mutation", "Mutation Table",
+                                               multiple = FALSE,
+                                               accept = c("text/csv",
+                                                          "text/comma-separated-values,text/plain",
+                                                          ".csv", ".xlsx", ".xls")),
+                                     fileInput("csvfile_image", "Image Profile",
+                                               multiple = FALSE,
+                                               accept = c("text/csv",
+                                                          "text/comma-separated-values,text/plain",
+                                                          ".csv", ".xlsx", ".xls")),
+                                     fileInput("csvfile_mRNA", "RNA Expression Table",
+                                               multiple = FALSE,
+                                               accept = c("text/csv",
+                                                          "text/comma-separated-values,text/plain",
+                                                          ".csv", ".xlsx", ".xls")),
+                                     fileInput("csvfile_protein", "Protein Expression Table",
+                                               multiple = FALSE,
+                                               accept = c("text/csv",
+                                                          "text/comma-separated-values,text/plain",
+                                                          ".csv", ".xlsx", ".xls")),
+                                     fileInput("csvfile_clinical", "Clinical Profile (* Required)",
+                                               multiple = FALSE,
+                                               accept = c("text/csv",
+                                                          "text/comma-separated-values,text/plain",
+                                                          ".csv", ".xlsx", ".xls")),
+                                     
+                                     # Include clarifying text ----
+                                     helpText("Note: Maximum file size allowed for uploading is 300MB."),
+                                     
+                                     # Input: Checkbox if file has header ----
+                                     checkboxInput("header", "Header", TRUE),
+                                     
+                                     fluidRow(
+                                       # Input: Select separator ----
+                                       column(6, radioButtons("sep", "Separator",
+                                                              choices = c(Comma = ",",
+                                                                          Semicolon = ";",
+                                                                          Tab = "\t",
+                                                                          Space = " "),
+                                                              selected = ",")),
+                                       # Input: Select quotes ----
+                                       column(6, radioButtons("quote", "Quote",
+                                                              choices = c(None = "",
+                                                                          "Double Quote" = '"',
+                                                                          "Single Quote" = "'"),
+                                                              selected = '"'))
+                                     ),
+                                     # Horizontal line ----
+                                     tags$hr(),
+                                     p('If you want a sample .csv file to upload,',
+                                       'you can first download the sample',
+                                       a(href = 'data/Protein.csv', 'Protein.csv'), ', ',
+                                       a(href = 'data/mutation.csv', 'mutation.csv'), ', ',
+                                       a(href = 'data/RNA.csv', 'RNA.csv'), ', ',
+                                       a(href = 'data/Clinical.csv', 'Clinical.csv'), ' and ',
+                                       a(href = 'data/Image_Features_Ass_General_CPTAC_merged_by_mean.csv', 'image_features.csv' ),
+                                       'files, and then try uploading them.'),
+                                     actionButton("action1", "Confirm when Complete")
+                                   )
                       ),
                       mainPanel(
                         tabsetPanel(
@@ -89,9 +94,9 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                    
                                    fluidRow(
                                      column(2, "Mutation Profile", htmlOutput("check1")),
-                                     column(2, "Image Profile", htmlOutput("check5")),
-                                     column(2, "RNA Expression Profile", htmlOutput("check2")),
-                                     column(2, "Protein Expression Profile", htmlOutput("check3")),
+                                     column(2, "Image Feature", htmlOutput("check5")),
+                                     column(2, "RNA Expression", htmlOutput("check2")),
+                                     column(2, "Protein Expression", htmlOutput("check3")),
                                      column(2, "Clinical Profile", htmlOutput("check4")),
                                      style="text-align: center"
                                    ),

@@ -8,6 +8,7 @@ library(gplots)
 library(plyr)
 library(GGally)
 library(survival)
+library(shinyjs)
 source("utils.R")
 source("my_heatmap.R")
 source("my_analysis.R")
@@ -19,32 +20,8 @@ options(stringsAsFactors = FALSE)
 
 
 function(input, output, session) {
-  DB.Mutation_gene <- reactiveVal(0)
-  DB.Image <- reactiveVal(0)
-  DB.RNA <- reactiveVal(0)
-  DB.Protein <- reactiveVal(0)
-  DB.Clinical <- reactiveVal(0)
-  DB.Clinical_cat_lab <- reactiveVal(0)
-  DB.Clinical_quan_lab <- reactiveVal(0)
-  DB.mutation_gene_test <- reactiveVal(0)
   
-  OncoPlot_res <- reactiveVal(0)
-  RNAheat_res <- reactiveVal(0)
-  Proteinheat_res <- reactiveVal(0)
-  Clinheat_res <- reactiveVal(0)
-  Imageheat_res <- reactiveVal(0)
-  get_analysis_res <- reactiveVal(0)
-  
-  output$check1 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
-  output$check2 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
-  output$check3 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
-  output$check4 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
-  output$check5 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
-  
-  ########################################################################
-  # data upload panel 
-  ########################################################################
-  observeEvent(input$action1,{
+  checkdataready <- function(input,output,DB){
     hideTab(inputId = "data.navigator", target = "Mutation")
     hideTab(inputId = "data.navigator", target = "Image features")
     hideTab(inputId = "data.navigator", target = "RNA expression")
@@ -90,7 +67,6 @@ function(input, output, session) {
     output$AnalysisDataTypeUI<-renderUI({
       awesomeRadio("AnalysisDataType", "", analysisDataTypeList)
     })
-    
     if(((length(DB.Mutation_gene()) > 0) + (length(DB.Image()) > 0) + (length(DB.RNA()) > 0) + (length(DB.Protein()) > 0) + (length(DB.Clinical()) > 0)) >= 3 & !is.null(DB.Clinical())){
       output$data_ready_flag <- reactive(TRUE)
       outputOptions(output, "data_ready_flag", suspendWhenHidden = FALSE)
@@ -125,13 +101,86 @@ function(input, output, session) {
       sendSweetAlert(session, title = "Insufficient Input Data", text = "Please upload required clinical file and at least two omics data.", type = "error",
                      btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
     }
+  }
+  
+  checkCatClin_selected <- reactiveVal("")
+  checkQuanClin_selected <- reactiveVal("")
+  
+  input.csvfile_mutation <- reactiveVal(NULL)
+  input.csvfile_image <- reactiveVal(NULL)
+  input.csvfile_mRNA <- reactiveVal(NULL)
+  input.csvfile_protein <- reactiveVal(NULL)
+  input.csvfile_clinical <- reactiveVal(NULL)
+  uploader_show_reactive <- reactiveVal(TRUE)
+  
+  
+  DB.Mutation_gene <- reactiveVal(0)
+  DB.Image <- reactiveVal(0)
+  DB.RNA <- reactiveVal(0)
+  DB.Protein <- reactiveVal(0)
+  DB.Clinical <- reactiveVal(0)
+  DB.Clinical_cat_lab <- reactiveVal(0)
+  DB.Clinical_quan_lab <- reactiveVal(0)
+  DB.mutation_gene_test <- reactiveVal(0)
+  
+  OncoPlot_res <- reactiveVal(0)
+  RNAheat_res <- reactiveVal(0)
+  Proteinheat_res <- reactiveVal(0)
+  Clinheat_res <- reactiveVal(0)
+  Imageheat_res <- reactiveVal(0)
+  get_analysis_res <- reactiveVal(0)
+  
+  output$check1 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
+  output$check2 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
+  output$check3 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
+  output$check4 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
+  output$check5 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
+  
+  ########################################################################
+  # data upload panel 
+  ########################################################################
+  observeEvent(input$action_load_example,{
+    input.csvfile_mutation("www/data/mutation.csv")
+    input.csvfile_image("www/data/Image_Features_Ass_General_CPTAC_merged_by_mean.csv")
+    input.csvfile_mRNA("www/data/RNA.csv")
+    input.csvfile_protein("www/data/Protein.csv")
+    input.csvfile_clinical("www/data/Clinical.csv")
+    shinyjs::hide("upload_panel")
+    checkdataready(input,output,DB)
+    checkCatClin_selected(c("ajcc_neoplasm_disease_lymph_node_stage",
+                            "ajcc_neoplasm_disease_stage",
+                            "breast_carcinoma_estrogen_receptor_status",
+                            "breast_carcinoma_progesterone_receptor_status",
+                            "person_neoplasm_cancer_status",
+                            "DiseaseFreeStatus", "OverallSurvivalStatus"))
+    checkQuanClin_selected(c("DiseaseFreeMonths", "OverallSurvivalMonths"))
   })
   
   
+  observeEvent(input$action1,{
+    checkdataready(input,output,DB)
+  })
+  
+  observeEvent(input$csvfile_mutation,{
+    input.csvfile_mutation(input$csvfile_mutation)
+  })
+  observeEvent(input$csvfile_image,{
+    input.csvfile_image(input$csvfile_image)
+  })
+  observeEvent(input$csvfile_mRNA,{
+    input.csvfile_mRNA(input$csvfile_mRNA)
+  })
+  observeEvent(input$csvfile_protein,{
+    input.csvfile_protein(input$csvfile_protein)
+  })
+  observeEvent(input$csvfile_clinical,{
+    input.csvfile_clinical(input$csvfile_clinical)
+  })
+  
   loadData.mutation <- function(){
-    if (is.null(input$csvfile_mutation)){
+    if (is.null(input.csvfile_mutation())){
       return(NULL)}else{
-        table = read.table(input$csvfile_mutation$datapath, sep=input$sep, header=TRUE, row.names = 1)
+        table = read.table(input.csvfile_mutation(), sep=input$sep, header=TRUE, row.names = 1)
         colnames(table) <- gsub(".", "-", colnames(table), fixed = TRUE)
         table[is.na(table)] <- 0
         DB.Mutation_gene(table)
@@ -140,9 +189,9 @@ function(input, output, session) {
     return(dim( DB.Mutation_gene() )) 
   }
   loadData.mRNA <- function(){
-    if (is.null(input$csvfile_mRNA)){
+    if (is.null(input.csvfile_mRNA())){
       return(NULL)}else{
-        table = read.table(input$csvfile_mRNA$datapath, sep=input$sep, header=TRUE, row.names = 1)
+        table = read.table(input.csvfile_mRNA(), sep=input$sep, header=TRUE, row.names = 1)
         colnames(table) <- gsub(".", "-", colnames(table), fixed = TRUE)
         table <- apply(table, c(1,2), as.numeric)
         table[is.na(table)] <- 0
@@ -152,9 +201,9 @@ function(input, output, session) {
     return(dim( DB.RNA() ))
   }
   loadData.protein <- function(){
-    if (is.null(input$csvfile_protein)){
+    if (is.null(input.csvfile_protein())){
       return(NULL)}else{
-        table = read.table(input$csvfile_protein$datapath, sep=input$sep, header=TRUE, row.names = 1)
+        table = read.table(input.csvfile_protein(), sep=input$sep, header=TRUE, row.names = 1)
         colnames(table) <- gsub(".", "-", colnames(table), fixed = TRUE)
         table <- apply(table, c(1,2), as.numeric)
         table[is.na(table)] <- 0
@@ -164,18 +213,18 @@ function(input, output, session) {
     return(dim(DB.Protein()))
   }
   loadData.clinical<- function(){
-    if (is.null(input$csvfile_clinical)){
+    if (is.null(input.csvfile_clinical())){
       return(NULL)}else{
-        table <- read.table(input$csvfile_clinical$datapath, sep=input$sep, header=TRUE, row.names = 1)
+        table <- read.table(input.csvfile_clinical(), sep=input$sep, header=TRUE, row.names = 1)
         DB.Clinical(table)
         session$sendCustomMessage("buttonCallbackHandler", "tab1")
       }
     return(dim(DB.Clinical()))
   }
   loadData.image<- function(){
-    if (is.null(input$csvfile_image)){
+    if (is.null(input.csvfile_image())){
       return(NULL)}else{
-        table <- read.table(input$csvfile_image$datapath, sep=input$sep, header=TRUE, row.names = 1)
+        table <- read.table(input.csvfile_image(), sep=input$sep, header=TRUE, row.names = 1)
         table <- t(table)
         # Data Integration
         table[is.na(table)] <- 0
@@ -286,16 +335,16 @@ function(input, output, session) {
     ClinList
   })
   output$checkCatClinUI <- renderUI({
-    if (is.null(input$csvfile_clinical))
+    if (is.null(input.csvfile_clinical()))
       return()
     checkboxGroupInput('checkCatClin', 'Select categorical clinical feature', get_all_clin(), 
-                       selected = "")
+                       selected = checkCatClin_selected())
   })
   output$checkQuanClinUI <- renderUI({
-    if (is.null(input$csvfile_clinical))
+    if (is.null(input.csvfile_clinical()))
       return()
     checkboxGroupInput('checkQuanClin', 'Select quantitative clinical feature', get_all_clin(), 
-                       selected = "")
+                       selected = checkQuanClin_selected())
   })
   CatClin <- reactive({input$checkCatClin})
   QuanClin <- reactive({input$checkQuanClin})
@@ -867,7 +916,7 @@ function(input, output, session) {
     if(input$ClinheatHasProtein){
       height_of_plot = height_of_plot + length(gsub("\\s","", strsplit(input$ClinheatInputProtein,",")[[1]]))
     }
-    
+    Clinheat_res(Clinheat_res.temp)
     output$Clinheat <- renderPlot({
       Clinheat_res()[["plot"]]
     }, height = input$myHeight5/20*height_of_plot, width = input$myWidth5)
