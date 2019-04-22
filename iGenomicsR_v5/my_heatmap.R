@@ -24,6 +24,8 @@ fun_order_samples <- function(mutation_genes, rna_genes, protein_genes, clinical
       res[["hc"]] <- hclust(dist(t(DB[["RNA"]][rna_genes,selected_samples,drop=FALSE])), method="average")
       res[["ordered_samples"]] <- selected_samples[res[["hc"]]$order]
     } else {
+      print("perform K-means clustering")
+      # save(DB, rna_genes, selected_samples, res, file = "~/Desktop/DB.Rdata")
       cl_temp <- kmeans(t(DB[["RNA"]][rna_genes,selected_samples,drop=FALSE]), clust_para[["k"]])
       res[["ordered_samples"]] <- selected_samples[order(cl_temp$cluster)]
       res[["cluster"]] <- cl_temp$cluster
@@ -212,7 +214,7 @@ my_heatmap_mutation <- function(DB, mutation_genes, rna_genes, protein_genes, cl
   }
   # heatmap for RNA
   if(length(rna_genes) >0 ){
-    print("--- 1 ---")
+    print("--- RNA genes > 0 ---")
     rna_genes = rev(rna_genes) # This is for descending order of names in y axis
     t <- try(res[["rna_data"]] <- t(DB[["RNA"]][rna_genes,ordered_samples,drop=FALSE]))
     if("try-error" %in% class(t)) {
@@ -239,7 +241,7 @@ my_heatmap_mutation <- function(DB, mutation_genes, rna_genes, protein_genes, cl
     rna[["value"]][ rna[["value"]] < -2] <- -2
     
     if(rna_size == 1){
-      print("--- 2 ---")
+      print("--- Plot RNA heatmap: RNA size == 1 ---")
       PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
         geom_tile(aes(fill = value)) + 
         scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
@@ -247,29 +249,12 @@ my_heatmap_mutation <- function(DB, mutation_genes, rna_genes, protein_genes, cl
         theme_bw() + my_theme + labs(x="", y="")
       print("length of rna genes:")
       print(length(rna_genes))
-      plot_heights <- c(plot_heights, length(rna_genes))
+      plot_heights <- c(plot_heights, pmin(length(rna_genes), 10))
     } else {
-      print("--- 3 ---")
-      if(show.RNA.name == 1){
-        PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
-          geom_tile(aes(fill = value)) + 
-          scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
-          guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
-          theme_bw() + labs(x="", y="") + my_theme + theme(plot.margin=unit(c(0,0,0,0), "cm"))
-      }
-      else{
-        PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
-          geom_tile(aes(fill = value)) + 
-          scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
-          guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
-          theme_bw() + labs(x="", y="") + my_theme + theme(plot.margin=unit(c(0,0,0,0), "cm")) +
-          theme(axis.text.y = element_blank())
-      }
-      plot_heights <- c(plot_heights, length(rna_genes) * rna_size)
       
       
       if(clust_para[["method"]]=="km"){
-        print("--- 4 ---")
+        print("--- Plot K-means Group ---")
         d <- data.frame(patient_id=ordered_samples, cluster=paste("Group ",sort(sample_order_res[["cluster"]]), sep=""))
         res[["rna_group"]] <- d[,"cluster",drop=FALSE]
         d[["patient_id"]] <- factor(d[["patient_id"]], levels=ordered_samples, ordered = TRUE)
@@ -289,11 +274,31 @@ my_heatmap_mutation <- function(DB, mutation_genes, rna_genes, protein_genes, cl
           theme_bw() + labs(x="", y="") + my_theme
         plot_heights <- c(plot_heights, 3)
       }
+      print("--- Plot RNA heatmap: RNA size > 1 ---")
+      if(show.RNA.name == 1){
+        PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
+          geom_tile(aes(fill = value)) + 
+          scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
+          guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
+          theme_bw() + labs(x="", y="") + my_theme + theme(plot.margin=unit(c(0,0,0,0), "cm"))
+      }
+      else{
+        PL[["rna_plot"]] <- ggplot(rna,  aes(Var2, Var1)) + 
+          geom_tile(aes(fill = value)) + 
+          scale_fill_gradient2(low = "blue4" , mid="white", high = "red", breaks=round(seq(min(rna$value),max(rna$value),(max(rna$value)-min(rna$value))/5), digits=1)) +
+          guides(fill = guide_colorbar(barwidth = 10, barheight = 1), direction = "vertical")  +
+          theme_bw() + labs(x="", y="") + my_theme + theme(plot.margin=unit(c(0,0,0,0), "cm")) +
+          theme(axis.text.y = element_blank())
+      }
+      print("rna_size", rna_size)
+      plot_heights <- c(plot_heights, pmin(length(rna_genes), 10))
+      
     }
   }
   
   # heatmap for mutations
   if(length(mutation_genes) > 0){
+    print("--- Also plot mutation heatmap ---")
     t <- try(res[["mutation_data"]] <- t(DB[["Mutation_gene"]][mutation_genes,ordered_samples,drop=FALSE]))
     if("try-error" %in% class(t)) {
       removeModal()
@@ -326,7 +331,7 @@ my_heatmap_mutation <- function(DB, mutation_genes, rna_genes, protein_genes, cl
   
   # heatmap for protein
   if(length(protein_genes)>0){
-    print("--- 5 ---")
+    print("--- Also plot protein heatmap ---")
     # plot both epithelial expression and stroma expression
     protein_genes = rev(protein_genes) # This is for descending order of names in y axis
     t <- try(protein <- DB[["Protein"]][protein_genes,ordered_samples,drop=FALSE])
@@ -425,11 +430,14 @@ my_heatmap_mutation <- function(DB, mutation_genes, rna_genes, protein_genes, cl
     plot_heights <- c(plot_heights, length(clinical_quan_lab) )
   }
   
+  # save(PL, file = "~/Desktop/PL.Rdata")
   d <- as.data.frame(res)
   res <- list()
   res[["table"]] <- d
   # plot all plots
-  res[["plot"]] <- plot_grid(plotlist=PL, align="v", ncol=1, rel_heights=plot_heights)
+  print("plot_heights")
+  print(plot_heights)
+  res[["plot"]] <- plot_grid(plotlist=PL, align="v", ncol=1, rel_heights=plot_heights)#, labels = names(PL))
   # return sample order also
   res[["sample_order_res"]] <- sample_order_res
   

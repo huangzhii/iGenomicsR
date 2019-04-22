@@ -1,6 +1,7 @@
 # Zhi Huang 06/09/2018
 library(shinyWidgets)
 library(markdown)
+library(shinyjs)
 
 navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                            height = 28,
@@ -373,7 +374,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               h4("De novo clustering of whole transcriptome", style="color: STEELBLUE"),
                                               textInput("RNAheatGeneCutoff", "Gene filter criteria", "var > 0.95"),
                                               helpText("eg. maxExp > 0.5 and var > 0.8 and cv > 0.5\nFilter order: maxExp, var, cv. Check FAQ for more detail."),
-                                              prettyCheckbox(inputId = "show.RNA.name", label = "Show RNA names", FALSE, icon = icon("check")),
+                                              prettyCheckbox(inputId = "show.RNA.name.1", label = "Show RNA names", FALSE, icon = icon("check")),
                                               actionButton("action.integration.RNA.denovo", "Run",style="color: WHITE; background-color: DODGERBLUE"),
                                               
                                               h4("Clustering on selected genes", style="color: STEELBLUE"),
@@ -382,6 +383,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               awesomeRadio("RNAheatClustMethod", "", list("hierarchical clustering"=0, "kmeans clustering"=1), 0),
                                               conditionalPanel(condition="input.RNAheatClustMethod==1",
                                                                numericInput("RNAheatKmeansK", "Number of clusters", value = 2, min=2)),
+                                              prettyCheckbox(inputId = "show.RNA.name.2", label = "Show RNA names", FALSE, icon = icon("check")),
                                               actionButton("action.integration.RNA.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE"),
                                               tags$hr(),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
@@ -398,7 +400,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                                                textInput("RNAheatInputProteins", "Paste genes here", "PTEN"),
                                                                materialSwitch(inputId = "do_hclust_rna_protein", label = "Sort genes by hierarchical clustering (average distance)", status = "primary")),
                                               conditionalPanel(condition="output.hasMutationData == 1",
-                                                prettyCheckbox(inputId = "RNAheatHasMutation", label = "Input genes to plot RNA level", icon = icon("check"))
+                                                prettyCheckbox(inputId = "RNAheatHasMutation", label = "Input genes to plot mutation", icon = icon("check"))
                                               ),
                                               conditionalPanel(condition="input.RNAheatHasMutation==1",
                                                                textInput("RNAheatInputMutation", "Paste genes here", "PTEN, TP53"),
