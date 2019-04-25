@@ -162,24 +162,25 @@ function(input, output, session) {
   })
   
   observeEvent(input$csvfile_mutation,{
-    input.csvfile_mutation(input$csvfile_mutation)
+    input.csvfile_mutation(input$csvfile_mutation$datapath)
   })
   observeEvent(input$csvfile_image,{
-    input.csvfile_image(input$csvfile_image)
+    input.csvfile_image(input$csvfile_image$datapath)
   })
   observeEvent(input$csvfile_mRNA,{
-    input.csvfile_mRNA(input$csvfile_mRNA)
+    input.csvfile_mRNA(input$csvfile_mRNA$datapath)
   })
   observeEvent(input$csvfile_protein,{
-    input.csvfile_protein(input$csvfile_protein)
+    input.csvfile_protein(input$csvfile_protein$datapath)
   })
   observeEvent(input$csvfile_clinical,{
-    input.csvfile_clinical(input$csvfile_clinical)
+    input.csvfile_clinical(input$csvfile_clinical$datapath)
   })
   
   loadData.mutation <- function(){
     if (is.null(input.csvfile_mutation())){
       return(NULL)}else{
+        print(input.csvfile_mutation())
         table = read.table(input.csvfile_mutation(), sep=input$sep, header=TRUE, row.names = 1)
         colnames(table) <- gsub(".", "-", colnames(table), fixed = TRUE)
         table[is.na(table)] <- 0
