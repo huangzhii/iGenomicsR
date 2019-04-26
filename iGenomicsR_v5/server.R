@@ -418,7 +418,7 @@ function(input, output, session) {
       d[,"pvalue"] <- format(as.numeric(d[,"pvalue"]),scientific=TRUE, nsmall=2,digits=2)
       d[,"adj_pvalue"] <- format(as.numeric(d[,"adj_pvalue"]),scientific=TRUE, nsmall=2,digits=2)
       return(d)
-    },selection="none",options=list(searching=F, ordering=F))#,extensions = 'Responsive'
+    },selection="none",options=list(searching=F, ordering=T))#,extensions = 'Responsive'
     
     output$dowloadGeneMutationTestRes <- downloadHandler(
       filename = function() { "mutation_gene_association_test.csv" },
