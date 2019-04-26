@@ -21,7 +21,7 @@ options(stringsAsFactors = FALSE)
 
 function(input, output, session) {
   
-  checkdataready <- function(input,output,DB){
+  checkdataready <- function(input,output,datafrom){
     hideTab(inputId = "data.navigator", target = "Mutation")
     hideTab(inputId = "data.navigator", target = "Image features")
     hideTab(inputId = "data.navigator", target = "RNA expression")
@@ -67,7 +67,14 @@ function(input, output, session) {
     output$AnalysisDataTypeUI<-renderUI({
       awesomeRadio("AnalysisDataType", "", analysisDataTypeList)
     })
-    if(((length(DB.Mutation_gene()) > 0) + (length(DB.Image()) > 0) + (length(DB.RNA()) > 0) + (length(DB.Protein()) > 0) + (length(DB.Clinical()) > 0)) >= 3 & !is.null(DB.Clinical())){
+    
+    if (datafrom == "user"){
+      if(!((length(DB.Mutation_gene()) > 0) + (length(DB.Image()) > 0) + (length(DB.RNA()) > 0) + (length(DB.Protein()) > 0) + (length(DB.Clinical()) > 0)) >= 3 & !is.null(DB.Clinical())){
+        sendSweetAlert(session, title = "Insufficient Input Data", text = "Please upload required clinical file and at least two omics data.", type = "error",
+                       btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+      }
+    }
+    else{
       output$data_ready_flag <- reactive(TRUE)
       outputOptions(output, "data_ready_flag", suspendWhenHidden = FALSE)
       sendSweetAlert(session, title = "File Upload Success", text = NULL, type = "success",
@@ -97,10 +104,6 @@ function(input, output, session) {
       }, height = 400, width = 600)
       session$sendCustomMessage("buttonCallbackHandler", "tab1")
     }
-    else{
-      sendSweetAlert(session, title = "Insufficient Input Data", text = "Please upload required clinical file and at least two omics data.", type = "error",
-                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
-    }
   }
   
   checkCatClin_selected <- reactiveVal("")
@@ -114,11 +117,11 @@ function(input, output, session) {
   uploader_show_reactive <- reactiveVal(TRUE)
   
   
-  DB.Mutation_gene <- reactiveVal(0)
-  DB.Image <- reactiveVal(0)
-  DB.RNA <- reactiveVal(0)
-  DB.Protein <- reactiveVal(0)
-  DB.Clinical <- reactiveVal(0)
+  DB.Mutation_gene <- reactiveVal(NULL)
+  DB.Image <- reactiveVal(NULL)
+  DB.RNA <- reactiveVal(NULL)
+  DB.Protein <- reactiveVal(NULL)
+  DB.Clinical <- reactiveVal(NULL)
   DB.Clinical_cat_lab <- reactiveVal(0)
   DB.Clinical_quan_lab <- reactiveVal(0)
   DB.mutation_gene_test <- reactiveVal(0)
@@ -146,7 +149,10 @@ function(input, output, session) {
     input.csvfile_protein("www/data/Protein.csv")
     input.csvfile_clinical("www/data/Clinical.csv")
     shinyjs::hide("upload_panel")
-    checkdataready(input,output,DB)
+  })
+  
+  observeEvent(DB.Clinical(),{ # if the last file is fully loaded then:
+    checkdataready(input,output,"example")
     checkCatClin_selected(c("ajcc_neoplasm_disease_lymph_node_stage",
                             "ajcc_neoplasm_disease_stage",
                             "breast_carcinoma_estrogen_receptor_status",
@@ -158,9 +164,12 @@ function(input, output, session) {
   
   
   observeEvent(input$action1,{
-    checkdataready(input,output,DB)
+    checkdataready(input,output,"user")
   })
   
+  observeEvent(input$csvfile_clinical,{
+    input.csvfile_clinical(input$csvfile_clinical$datapath)
+  })
   observeEvent(input$csvfile_mutation,{
     input.csvfile_mutation(input$csvfile_mutation$datapath)
   })
@@ -173,14 +182,21 @@ function(input, output, session) {
   observeEvent(input$csvfile_protein,{
     input.csvfile_protein(input$csvfile_protein$datapath)
   })
-  observeEvent(input$csvfile_clinical,{
-    input.csvfile_clinical(input$csvfile_clinical$datapath)
-  })
   
+  loadData.clinical<- function(){
+    if (is.null(input.csvfile_clinical())){
+      return(NULL)}else{
+        message("loading clinical data")
+        table <- read.table(input.csvfile_clinical(), sep=input$sep, header=TRUE, row.names = 1)
+        DB.Clinical(table)
+        session$sendCustomMessage("buttonCallbackHandler", "tab1")
+      }
+    return(dim(DB.Clinical()))
+  }
   loadData.mutation <- function(){
     if (is.null(input.csvfile_mutation())){
       return(NULL)}else{
-        print(input.csvfile_mutation())
+        message("loading mutation data")
         table = read.table(input.csvfile_mutation(), sep=input$sep, header=TRUE, row.names = 1)
         colnames(table) <- gsub(".", "-", colnames(table), fixed = TRUE)
         table[is.na(table)] <- 0
@@ -192,6 +208,7 @@ function(input, output, session) {
   loadData.mRNA <- function(){
     if (is.null(input.csvfile_mRNA())){
       return(NULL)}else{
+        message("loading mRNA data")
         table = read.table(input.csvfile_mRNA(), sep=input$sep, header=TRUE, row.names = 1)
         colnames(table) <- gsub(".", "-", colnames(table), fixed = TRUE)
         table <- apply(table, c(1,2), as.numeric)
@@ -204,6 +221,7 @@ function(input, output, session) {
   loadData.protein <- function(){
     if (is.null(input.csvfile_protein())){
       return(NULL)}else{
+        message("loading protein data")
         table = read.table(input.csvfile_protein(), sep=input$sep, header=TRUE, row.names = 1)
         colnames(table) <- gsub(".", "-", colnames(table), fixed = TRUE)
         table <- apply(table, c(1,2), as.numeric)
@@ -213,18 +231,10 @@ function(input, output, session) {
       }
     return(dim(DB.Protein()))
   }
-  loadData.clinical<- function(){
-    if (is.null(input.csvfile_clinical())){
-      return(NULL)}else{
-        table <- read.table(input.csvfile_clinical(), sep=input$sep, header=TRUE, row.names = 1)
-        DB.Clinical(table)
-        session$sendCustomMessage("buttonCallbackHandler", "tab1")
-      }
-    return(dim(DB.Clinical()))
-  }
   loadData.image<- function(){
     if (is.null(input.csvfile_image())){
       return(NULL)}else{
+        message("loading image data")
         table <- read.table(input.csvfile_image(), sep=input$sep, header=TRUE, row.names = 1)
         table <- t(table)
         # Data Integration
@@ -261,10 +271,10 @@ function(input, output, session) {
     return(dim(DB.Image()))
   }
   
+  observeEvent(loadData.clinical(),{output$check4 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   observeEvent(loadData.mutation(),{output$check1 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   observeEvent(loadData.mRNA(),{output$check2 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   observeEvent(loadData.protein(),{output$check3 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
-  observeEvent(loadData.clinical(),{output$check4 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   observeEvent(loadData.image(),{output$check5 <- renderText({'<img src="./images/check_yes.png", style="width:30px">'})})
   
   summarize_dataUpload <- eventReactive(input$uploadSummaryButton, {
@@ -425,12 +435,20 @@ function(input, output, session) {
   observeEvent(input$action.navigator.RNA,{
     output$RNADotPlot <- renderPlot({
       genes <- c(input$navigator.RNA.expression.gene.1, input$navigator.RNA.expression.gene.2)
+      if ( any(!(genes %in% rownames(DB.RNA()))) ){
+        sendSweetAlert(session, title = "Alert",
+                       text = sprintf("Genes [%s] are not contained in the RNA data",
+                                      genes[!(genes %in% rownames(DB.ppp))]),
+                       type = "warning",
+                       btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+        return()
+      }
       d <- DB.RNA()[genes,,drop=FALSE]
       d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
       x <- d[genes[1],,drop=TRUE]
       y <- d[genes[2],,drop=TRUE]
       corr <- cor(x, y)
-      plot(x, y, xlab=genes[1], ylab=genes[2], main="RNA expression", sub=paste("correlation:", corr))
+      plot(x, y, xlab=genes[1], ylab=genes[2], main="RNA expression", sub=paste("correlation:", round(corr, 2)))
     }, height = 500, width = 500)
   })
   
@@ -438,6 +456,17 @@ function(input, output, session) {
     # save(DB, file = "~/Desktop/DB.Rdata")
     output$ProteinDotPlot1 <- renderPlot({
       genes <- c(input$navigator.protein.expression.gene.1, input$navigator.protein.expression.gene.2)
+      # DB.ppp = DB.Protein()
+      # save(DB.ppp, genes, file = "~/Desktop/DB.protein.Rdata")
+      if ( any(!(genes %in% rownames(DB.Protein()))) ){
+        sendSweetAlert(session, title = "Alert",
+                       text = sprintf("Genes [%s] are not contained in the protein data",
+                                      genes[!(genes %in% rownames(DB.ppp))]),
+                       type = "warning",
+                       btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+        return()
+      }
+      
       d <- DB.Protein()[genes,,drop=FALSE]
       d <- d[,!apply(d, 2, function(z){any(is.na(z))})]
       d <- apply(d, c(1,2), as.numeric)
@@ -614,7 +643,7 @@ function(input, output, session) {
   output$downloadImageheatData <- downloadHandler(
     filename = function() { "data_ordered_by_image_feature.csv" },
     content = function(file) {
-      write.csv( t(Imageheat_res()[["table"]]), file, row.names=TRUE)
+      write.csv( Imageheat_res()[["table"]], file, row.names=TRUE)
     }) ###
   
   
@@ -756,7 +785,7 @@ function(input, output, session) {
   output$downloadRNAheatData <- downloadHandler(
     filename = function() { "data_ordered_by_rna.csv" },
     content = function(file) {
-      write.csv(t(RNAheat_res()[["table"]]), 
+      write.csv( RNAheat_res()[["table"]], 
                 file, row.names=TRUE)
     }) ###
   
@@ -865,7 +894,7 @@ function(input, output, session) {
   output$downloadProteinheatData <- downloadHandler(
     filename = function() { "data_ordered_by_protein.csv" },
     content = function(file) {
-      write.csv(t(Proteinheat_res()[["table"]]), 
+      write.csv( Proteinheat_res()[["table"]], 
                 file, row.names=TRUE)
     }) ###
   
@@ -927,7 +956,7 @@ function(input, output, session) {
   output$downloadClinheatData <- downloadHandler(
     filename = function() { "data_ordered_by_clinical.csv" },
     content = function(file) {
-      write.csv( t(Clinheat_res()[["table"]]), file, row.names=TRUE)
+      write.csv( Clinheat_res()[["table"]], file, row.names=TRUE)
     }) ###
   
   
@@ -1015,7 +1044,15 @@ function(input, output, session) {
     if (length(DB.Clinical_cat_lab()) != 0) DB.temp[["Clinical_cat_lab"]] = DB.Clinical_cat_lab()
     if (length(DB.Clinical_quan_lab()) != 0) DB.temp[["Clinical_quan_lab"]] = DB.Clinical_quan_lab()
     
-    get_analysis_res.temp <- run_analysis(dataTypes[toString(input$AnalysisDataType)], get_patient_groups(), DB.temp)
+    # datatype = dataTypes[toString(input$AnalysisDataType)]
+    # get_patient_groups = get_patient_groups()
+    # save(datatype, get_patient_groups, DB.temp, file="~/Desktop/DB.protein.Rdata")
+    t <- try(get_analysis_res.temp <- run_analysis(dataTypes[toString(input$AnalysisDataType)], get_patient_groups(), DB.temp))
+    if("try-error" %in% class(t)) {
+      sendSweetAlert(session, title = "Error Occured", text = "There's an error processing your request. May be wrong patient groups?", type = "error",
+                     btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
+      return()
+    }
     get_analysis_res.temp <- data.frame(get_analysis_res.temp)
     get_analysis_res.temp <- get_analysis_res.temp[sort.list(get_analysis_res.temp$pvalue), ]
     get_analysis_res(get_analysis_res.temp)
@@ -1063,9 +1100,7 @@ function(input, output, session) {
   output$dowloadAnalysisRes <- downloadHandler(
     filename = function() { "full_significant_genes.csv" },
     content = function(file) {
-      write.csv(get_analysis_res,file, row.names=TRUE)
+      write.csv(get_analysis_res(),file, row.names=TRUE)
     })
-  
-  
   
 }
