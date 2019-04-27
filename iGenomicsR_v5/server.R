@@ -193,6 +193,22 @@ function(input, output, session) {
       }
     return(dim(DB.Clinical()))
   }
+  
+  observeEvent(DB.Clinical(),{
+    output$PatientGroupsInputUI1 <- renderUI({
+      selectInput(inputId="patientGroups1", label="Select patient group 1 here",
+                  choices = rownames(DB.Clinical()),
+                  multiple = T)
+    })
+  })
+  observeEvent(DB.Clinical(),{
+    output$PatientGroupsInputUI2 <- renderUI({
+      selectInput(inputId="patientGroups2", label="Select patient group 2 here",
+                  choices = rownames(DB.Clinical()),
+                  multiple = T)
+    })
+  })
+  
   loadData.mutation <- function(){
     if (is.null(input.csvfile_mutation())){
       return(NULL)}else{
@@ -415,8 +431,8 @@ function(input, output, session) {
       # print(head(DB[["mutation_gene_test"]]))
       d <- DB.mutation_gene_test()
       d[,"oddsRatio"] <- format(as.numeric(d[,"oddsRatio"]),nsmall=2, digits=2)
-      d[,"pvalue"] <- format(as.numeric(d[,"pvalue"]),scientific=TRUE, nsmall=2,digits=2)
-      d[,"adj_pvalue"] <- format(as.numeric(d[,"adj_pvalue"]),scientific=TRUE, nsmall=2,digits=2)
+      # d[,"pvalue"] <- format(as.numeric(d[,"pvalue"]),scientific=TRUE, nsmall=2,digits=2)
+      # d[,"adj_pvalue"] <- format(as.numeric(d[,"adj_pvalue"]),scientific=TRUE, nsmall=2,digits=2)
       return(d)
     },selection="none",options=list(searching=F, ordering=T))#,extensions = 'Responsive'
     
@@ -973,8 +989,8 @@ function(input, output, session) {
     else if(input$patientGroups1 == "" | input$patientGroups2 == "") {
       get_patient_groups = NULL
     }
-    tmp1<-matrix(strsplit(input$patientGroups1, "\n")[[1]])
-    tmp2<-matrix(strsplit(input$patientGroups2, "\n")[[1]])
+    tmp1<-matrix(input$patientGroups1)
+    tmp2<-matrix(input$patientGroups2)
     maxlength <- max(length(tmp1), length(tmp2))
     length(tmp1) <- maxlength
     length(tmp2) <- maxlength
@@ -994,7 +1010,10 @@ function(input, output, session) {
     timesOfPat <- table(all_patients)
     if(any(timesOfPat > 1)){
       get_patient_groups = paste(names(timesOfPat)[timesOfPat>1], "showed up multiple times")
-      sendSweetAlert(session, title = "Error", text = "Same patient(s) discovered in two groups. Please make sure two groups of patients are mutually exclusive.", type = "error",
+      sendSweetAlert(session, title = "Error",
+                     text = sprintf("Patients %s discovered in both groups. Please make sure two groups of patients are mutually exclusive.",
+                                    names(timesOfPat)[timesOfPat>1]),
+                     type = "error",
                      btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
       return()
     }
@@ -1062,40 +1081,92 @@ function(input, output, session) {
     # output analysis result
     output$analysisResTable <- DT::renderDataTable({
       res <- get_analysis_res()
-    }, selection="none",options=list(searching=F, ordering=F)) #,extensions = 'Responsive'
+    }, selection="none",options=list(searching=F, ordering=T)) #,extensions = 'Responsive'
     
     
   })
+  
+  
+  # Survival Standard Terminology
+  observeEvent(DB.Clinical(),{
+    output$SurvivalStandardTerminologyUI1 <- renderUI({
+        tagList(
+          fluidRow(
+            column(3, selectInput(inputId="OS.time.column", label="Overall Survival Time Column",
+                                  choices = colnames(DB.Clinical()), selected=NULL,
+                                  multiple = F)),
+            column(3, selectInput(inputId="OS.status.column", label="Overall Survival Status Column",
+                                  choices = colnames(DB.Clinical()), selected=NULL,
+                                  multiple = F)),
+            column(3, selectInput(inputId="DFS.time.column", label="Disease Free Survival Time Column",
+                                  choices = colnames(DB.Clinical()), selected=NULL,
+                                  multiple = F)),
+            column(3, selectInput(inputId="DFS.status.column", label="Disease Free Survival Status Column",
+                                  choices = colnames(DB.Clinical()), selected=NULL,
+                                  multiple = F))
+          )
+        )
+    })
+  })
+  
+  observeEvent(DB.Clinical(),{
+    output$SurvivalStandardTerminologyUI2 <- renderUI({
+      tagList(
+        fluidRow(
+          column(3, ""),
+          column(3, selectInput(inputId="OS.status.censored", label="OS Censored Label (e.g., DECEASED)",
+                                choices = unique(DB.Clinical()[,input$OS.status.column]),
+                                multiple = F)),
+          column(3, ""),
+          column(3, selectInput(inputId="DFS.status.censored", label="DFS Censored Label (e.g., DECEASED)",
+                                choices = unique(DB.Clinical()[,input$DFS.status.column]),
+                                multiple = F))
+        ),
+        actionButton("EFS.OS.confirmed", "Confirm and Run")
+        )
+    })
+  })
+  
   # disease free survival
-  output[["DFSurvivalPlot"]] <- renderPlot({
-    PatList <- as.list(get_patient_groups())
-    PatList <- lapply(PatList, function(x){setdiff(x, "")})
-    clin_d <- data.frame(time=as.numeric(DB.Clinical()[unlist(PatList),"DiseaseFreeMonths"]),
-                         event=DB.Clinical()[unlist(PatList),"DiseaseFreeStatus"]=="WITHTUMOR",
-                         group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
-    )
-    clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
-    survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
-    survf <- survfit(Surv(time,event) ~ group, data = clin_d)
-    print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
-                               x='Time (Month)', y='Disease Free Survival'))
-  }, height = 500, width = 700)
+  observeEvent(input$EFS.OS.confirmed,{
+    output[["DFSurvivalPlot"]] <- renderPlot({
+      PatList <- as.list(get_patient_groups())
+      PatList <- lapply(PatList, function(x){setdiff(x, "")})
+      clin_d <- data.frame(time=as.numeric(DB.Clinical()[unlist(PatList),input$DFS.time.column]),
+                           event=as.numeric(DB.Clinical()[unlist(PatList),input$DFS.status.column]==input$DFS.status.censored),
+                           # group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
+                           group = c(rep(1, length(unlist(PatList[1]))), rep(2, length(unlist(PatList[2]))))
+      )
+      print("Disease Free Survival")
+      print(clin_d)
+      clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
+      survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
+      survf <- survfit(Surv(time,event) ~ group, data = clin_d)
+      print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
+                                 x='Time (Month)', y='Disease Free Survival'))
+    }, height = 500, width = 700)
+    
+    
+    #survival
+    output[["SurvivalPlot"]] <- renderPlot({
+      PatList <- as.list(get_patient_groups())
+      PatList <- lapply(PatList, function(x){setdiff(x, "")})
+      clin_d <- data.frame(time=as.numeric(DB.Clinical()[unlist(PatList),input$OS.time.column]),
+                           event=as.numeric(DB.Clinical()[unlist(PatList),input$OS.status.column]==input$OS.status.censored),
+                           # group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
+                           group = c(rep(1, length(unlist(PatList[1]))), rep(2, length(unlist(PatList[2]))))
+      )
+      print("Overall Survival")
+      print(clin_d)
+      clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
+      survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
+      survf <- survfit(Surv(time, event) ~ group, data = clin_d)
+      print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
+                                 x='Time (Month)', y='Overall Survival'))
+    }, height = 500, width = 700)
+    
+  })
   
-  
-  #survival
-  output[["SurvivalPlot"]] <- renderPlot({
-    PatList <- as.list(get_patient_groups())
-    PatList <- lapply(PatList, function(x){setdiff(x, "")})
-    clin_d <- data.frame(time=as.numeric(DB.Clinical()[unlist(PatList),"OverallSurvivalMonths"]),
-                         event=DB.Clinical()[unlist(PatList),"OverallSurvivalStatus"]=="DECEASED",
-                         group = c(rep(names(PatList)[1], length(unlist(PatList[1]))), rep(names(PatList)[2], length(unlist(PatList[2]))))
-    )
-    clin_d <- clin_d[apply(clin_d, 1, function(x){!any(is.na(x))}),]
-    survd <- survdiff(Surv(time, event, type="right") ~ group, data = clin_d)
-    survf <- survfit(Surv(time,event) ~ group, data = clin_d)
-    print(ggsurv(survf) + labs(title=paste("pvalue:", 1-pchisq(survd$chisq, 1)),
-                               x='Time (Month)', y='Overall Survival'))
-  }, height = 500, width = 700)
   
   output$dowloadAnalysisRes <- downloadHandler(
     filename = function() { "full_significant_genes.csv" },

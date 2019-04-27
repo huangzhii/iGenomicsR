@@ -71,8 +71,8 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                        a(href = 'data/RNA.csv', 'RNA.csv'), ', ',
                                        a(href = 'data/Clinical.csv', 'Clinical.csv'), ' and ',
                                        a(href = 'data/Image_Features_Ass_General_CPTAC_merged_by_mean.csv', 'image_features.csv' ),
-                                       'files, and then try uploading them.'),
-                                     actionButton("action1", "Confirm when Complete")
+                                       'files, and then try uploading them.')
+                                     # actionButton("action1", "Confirm when Complete")
                                    )
                       ),
                       mainPanel(
@@ -539,89 +539,9 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                         uiOutput("AnalysisDataTypeUI"),
                         h4("Define patient groups", style="color: STEELBLUE"),
                         fluidRow(
-                          column(6, textAreaInput(inputId="patientGroups1", label = "Group 1", cols=10, rows = 10,
-                                                  value="TCGA-A2-A0D1-01
-TCGA-A2-A0EQ-01
-TCGA-A2-A0EY-01
-TCGA-A7-A0CJ-01
-TCGA-AR-A1AW-01
-TCGA-C8-A12L-01
-TCGA-C8-A12T-01
-TCGA-C8-A130-01
-TCGA-C8-A131-01
-TCGA-A2-A0CM-01
-TCGA-A2-A0D0-01
-TCGA-A2-A0SW-01
-TCGA-A2-A0SX-01
-TCGA-A2-A0T1-01
-TCGA-A2-A0T2-01
-TCGA-A2-A0YG-01
-TCGA-A7-A0CE-01
-TCGA-A8-A06Z-01
-TCGA-A8-A079-01
-TCGA-AN-A0FL-01
-TCGA-AO-A03O-01
-TCGA-AO-A0J6-01
-TCGA-AO-A12D-01
-TCGA-AR-A0TX-01
-TCGA-AR-A1AQ-01
-TCGA-BH-A0C0-01
-TCGA-BH-A0E0-01
-TCGA-BH-A18Q-01
-TCGA-BH-A18U-01
-TCGA-BH-A18V-01
-TCGA-C8-A12P-01
-TCGA-C8-A12Q-01
-TCGA-C8-A12W-01
-TCGA-C8-A12Z-01
-TCGA-C8-A134-01
-TCGA-C8-A135-01
-TCGA-C8-A138-01
-TCGA-D8-A142-01
-TCGA-E2-A150-01
-TCGA-E2-A159-01")
-                          ),
-                          column(6, textAreaInput(inputId="patientGroups2", label = "Group 2", cols=10, rows = 10,
-                                                  value="TCGA-A2-A0EV-01
-TCGA-A2-A0EX-01
-TCGA-A2-A0T7-01
-TCGA-A2-A0YC-01
-TCGA-A2-A0YI-01
-TCGA-A2-A0YL-01
-TCGA-AO-A126-01
-TCGA-AR-A1AV-01
-TCGA-BH-A0BV-01
-TCGA-C8-A12U-01
-TCGA-E2-A154-01
-TCGA-A2-A0D2-01
-TCGA-A2-A0T3-01
-TCGA-A2-A0T6-01
-TCGA-A2-A0YD-01
-TCGA-A2-A0YF-01
-TCGA-A7-A0CD-01
-TCGA-A7-A13F-01
-TCGA-A8-A06N-01
-TCGA-A8-A076-01
-TCGA-A8-A09I-01
-TCGA-AN-A04A-01
-TCGA-AN-A0FK-01
-TCGA-AO-A0J9-01
-TCGA-AO-A0JE-01
-TCGA-AO-A0JJ-01
-TCGA-AO-A0JM-01
-TCGA-AO-A12B-01
-TCGA-AO-A12E-01
-TCGA-AR-A0TY-01
-TCGA-BH-A0AV-01
-TCGA-BH-A0BZ-01
-TCGA-BH-A0DD-01
-TCGA-BH-A0DG-01
-TCGA-BH-A0E9-01
-TCGA-BH-A18N-01
-TCGA-BH-A18R-01
-TCGA-C8-A12V-01
-TCGA-D8-A13Y-01
-TCGA-E2-A10A-01"))
+                          column(6, uiOutput("PatientGroupsInputUI1")),
+                          column(6, uiOutput("PatientGroupsInputUI2"))
+
                           ),
                         
                         tags$br(),
@@ -636,6 +556,8 @@ TCGA-E2-A10A-01"))
                         h4("Patients you inputted"),
                         DT::dataTableOutput("inputtedPatientGroups"),
                         conditionalPanel(condition="input.AnalysisDataType==5",
+                                         uiOutput("SurvivalStandardTerminologyUI1"),
+                                         uiOutput("SurvivalStandardTerminologyUI2"),
                                          plotOutput("SurvivalPlot", height='100%', width='100%'),
                                          plotOutput("DFSurvivalPlot", height='100%', width='100%')),
                         conditionalPanel(condition="input.AnalysisDataType!=5",
@@ -668,10 +590,10 @@ TCGA-E2-A10A-01"))
                     tags$div(
                       tags$img(src='images/IUSM2.png',
                                height="100",
-                               alt="TSUNAMI", class="center", style="padding: 30px"),
+                               alt="IUSM", class="center", style="padding: 30px"),
                       tags$img(src='images/regenstrief.png',
                                height="100",
-                               alt="TSUNAMI", class="center", style="padding: 30px"),
+                               alt="Regenstrief", class="center", style="padding: 30px"),
                       style="text-align: center; padding: 20px"
                     ),
                     h4("Our Other Softwares", style="color: STEELBLUE; padding-bottom: 20px"),
@@ -716,8 +638,8 @@ TCGA-E2-A10A-01"))
            ),
            tags$head(tags$script(HTML("document.title = 'iGenomicsR';"))), # rename the title by JS
            tags$div(
-             p(a("iGenomicsR", href=""), "Version v1.1 | ", a("IUSM",href="https://medicine.iu.edu/", target="_blank"), " | ", a("RI",href="http://www.regenstrief.org/", target="_blank"), style="color: grey; font-size: 12px"), 
+             p(a("iGenomicsR", href=""), "Version v1.2 | ", a("IUSM",href="https://medicine.iu.edu/", target="_blank"), " | ", a("RI",href="http://www.regenstrief.org/", target="_blank"), style="color: grey; font-size: 12px"), 
              p("Questions and feedback:  | ", a("Report Issue", href="https://github.com/huangzhii/iGenomicsR/issues", target="_blank"), " | ", a("Github", href="https://github.com/huangzhii/iGenomicsR/", target="_blank"), style="color: grey; font-size: 12px"),
              style="text-align: center; padding-top: 40px"
            )
-                    )
+)
