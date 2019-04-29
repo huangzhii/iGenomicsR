@@ -79,15 +79,11 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                         tabsetPanel(
                           tabPanel("About",
                                    h2("iGenomicsR:", style="color: STEELBLUE; font-size: 22px"),
-                                   h2("An integrative platform to explore, visualize, and analyze multidimensional genomics data for disease", style="color: STEELBLUE; font-size: 20px; margin: 0px"),
+                                   h2("A Multi-omics Platform for Integrative Genomics Data Analysis and Visualization", style="color: STEELBLUE; font-size: 20px; margin: 0px"),
                                    HTML('<p> <br> This application was developed to help biologists to do integrative analysis of multi-dimentsional genomics data. We provide plots and statistical test to identify patterns from their data and also test their hypothesis. We would like to thank everyone who has made constructive suggestions so far. We will document the addition of new features in the News tab.</p>'),
-                                   h4("Software references"),
-                                   HTML('<p>R Development Core Team. <i><a href="http://www.r-project.org/">R</a>:  A Language and Environment for Statistical Computing.</i> R Foundation for Statistical Computing, Vienna (2013) <br>
-                                        RStudio and Inc. <i><a href="http://www.rstudio.com/shiny/">shiny</a>: Web Application Framework for R.</i> R package version 0.5.0 (2013) <br> 
-                                        Hadley Wickham. <i><a href="http://docs.ggplot2.org/current/">ggplot2</a>: a plotting system for R.</i> R package version 1.0.1 <br>
-                                        Erich Neuwirth. <i><a href="http://cran.r-project.org/web/packages/RColorBrewer/index.html">RColorBrewer</a>: ColorBrewer palettes.</i> R package version 1.1-2<br>
-                                        Hadley Wickham. <i><a href="https://cran.r-project.org/web/packages/reshape2/index.html">reshape2</a>: Flexibly Reshape Data.</i> R package version 1.4.1 <br>
-                                        </p>')
+                                   img(src="images/iGenomicsR_banner.png",
+                                       height = 600,
+                                       style = "margin:0px 0px; padding-bottom: 5px")
                                    ),
                           tabPanel("Dataset",
                                    h4("Data File required", style="color: STEELBLUE; padding-top: 10px"),
