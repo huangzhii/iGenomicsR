@@ -151,6 +151,12 @@ function(input, output, session) {
     shinyjs::hide("upload_panel")
   })
   observeEvent(input$action_load_example2,{
+    input.csvfile_image(NULL)
+    DB.Image(NULL)
+    Imageheat_res(0)
+    output$check5 <- renderText({'<img src="./images/check_no.png", style="width:30px">'})
+    hideTab(inputId = "data.navigator", target = "Image features")
+    hideTab(inputId = "data.integration", target = "Image features")
     input.csvfile_mutation("www/data/UCEC/UCEC_mutation.csv")
     input.csvfile_mRNA("www/data/UCEC/UCEC_RNA.csv")
     input.csvfile_protein("www/data/UCEC/UCEC_protein.csv")
@@ -158,7 +164,7 @@ function(input, output, session) {
     shinyjs::hide("upload_panel")
   })
   
-  observeEvent(DB.Clinical(),{ # if the last file is fully loaded then:
+  observeEvent(DB.Clinical(),{ # if the last file is fully loaded then:x
     checkdataready(input,output,"example")
     checkCatClin_selected(c("ajcc_neoplasm_disease_lymph_node_stage",
                             "ajcc_neoplasm_disease_stage",
