@@ -142,12 +142,19 @@ function(input, output, session) {
   ########################################################################
   # data upload panel 
   ########################################################################
-  observeEvent(input$action_load_example,{
+  observeEvent(input$action_load_example1,{
     input.csvfile_mutation("www/data/mutation.csv")
     input.csvfile_image("www/data/Image_Features_Ass_General_CPTAC_merged_by_mean.csv")
     input.csvfile_mRNA("www/data/RNA.csv")
     input.csvfile_protein("www/data/Protein.csv")
     input.csvfile_clinical("www/data/Clinical.csv")
+    shinyjs::hide("upload_panel")
+  })
+  observeEvent(input$action_load_example2,{
+    input.csvfile_mutation("www/data/UCEC/UCEC_mutation.csv")
+    input.csvfile_mRNA("www/data/UCEC/UCEC_RNA.csv")
+    input.csvfile_protein("www/data/UCEC/UCEC_protein.csv")
+    input.csvfile_clinical("www/data/UCEC/UCEC_clinical.csv")
     shinyjs::hide("upload_panel")
   })
   
