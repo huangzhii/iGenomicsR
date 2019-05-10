@@ -1,99 +1,97 @@
 # Zhi Huang 06/09/2018
 library(shinyWidgets)
 library(markdown)
-library(shinyjs)
 
 navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                            height = 28,
                            style = "margin:0px 0px; padding-bottom: 5px"), href=""),escape=F),
-           tabPanel("Data Upload",
+           tabPanel("Welcome",
                     sidebarLayout(
                       position = "left",
                       sidebarPanel(width = 3,
                                    h4("File Uploader", style="color: STEELBLUE"),
-                                   actionButton("action_load_example1", "Load Example 1"),
-                                   actionButton("action_load_example2", "Load Example 2 (UCEC)"),
-                                   useShinyjs(),
-                                   div(
-                                     id = "upload_panel",
-                                     fileInput("csvfile_mutation", "Mutation Table",
-                                               multiple = FALSE,
-                                               accept = c("text/csv",
-                                                          "text/comma-separated-values,text/plain",
-                                                          ".csv", ".xlsx", ".xls")),
-                                     fileInput("csvfile_image", "Image Profile",
-                                               multiple = FALSE,
-                                               accept = c("text/csv",
-                                                          "text/comma-separated-values,text/plain",
-                                                          ".csv", ".xlsx", ".xls")),
-                                     fileInput("csvfile_mRNA", "RNA Expression Table",
-                                               multiple = FALSE,
-                                               accept = c("text/csv",
-                                                          "text/comma-separated-values,text/plain",
-                                                          ".csv", ".xlsx", ".xls")),
-                                     fileInput("csvfile_protein", "Protein Expression Table",
-                                               multiple = FALSE,
-                                               accept = c("text/csv",
-                                                          "text/comma-separated-values,text/plain",
-                                                          ".csv", ".xlsx", ".xls")),
-                                     fileInput("csvfile_clinical", "Clinical Profile (* Required)",
-                                               multiple = FALSE,
-                                               accept = c("text/csv",
-                                                          "text/comma-separated-values,text/plain",
-                                                          ".csv", ".xlsx", ".xls")),
-                                     
-                                     # Include clarifying text ----
-                                     helpText("Note: Maximum file size allowed for uploading is 300MB."),
-                                     
-                                     # Input: Checkbox if file has header ----
-                                     checkboxInput("header", "Header", TRUE),
-                                     
-                                     fluidRow(
-                                       # Input: Select separator ----
-                                       column(6, radioButtons("sep", "Separator",
-                                                              choices = c(Comma = ",",
-                                                                          Semicolon = ";",
-                                                                          Tab = "\t",
-                                                                          Space = " "),
-                                                              selected = ",")),
-                                       # Input: Select quotes ----
-                                       column(6, radioButtons("quote", "Quote",
-                                                              choices = c(None = "",
-                                                                          "Double Quote" = '"',
-                                                                          "Single Quote" = "'"),
-                                                              selected = '"'))
-                                     ),
-                                     # Horizontal line ----
-                                     tags$hr(),
-                                     p('If you want a sample .csv file to upload,',
-                                       'you can first download the sample',
-                                       a(href = 'data/Protein.csv', 'Protein.csv'), ', ',
-                                       a(href = 'data/mutation.csv', 'mutation.csv'), ', ',
-                                       a(href = 'data/RNA.csv', 'RNA.csv'), ', ',
-                                       a(href = 'data/Clinical.csv', 'Clinical.csv'), ' and ',
-                                       a(href = 'data/Image_Features_Ass_General_CPTAC_merged_by_mean.csv', 'image_features.csv' ),
-                                       'files, and then try uploading them.')
-                                     # actionButton("action1", "Confirm when Complete")
-                                   )
+                                   fileInput("csvfile_mutation", "Mutation Table",
+                                             multiple = FALSE,
+                                             accept = c("text/csv",
+                                                        "text/comma-separated-values,text/plain",
+                                                        ".csv", ".xlsx", ".xls")),
+                                   fileInput("csvfile_image", "Image Profile",
+                                             multiple = FALSE,
+                                             accept = c("text/csv",
+                                                        "text/comma-separated-values,text/plain",
+                                                        ".csv", ".xlsx", ".xls")),
+                                   fileInput("csvfile_mRNA", "RNA Expression Table",
+                                             multiple = FALSE,
+                                             accept = c("text/csv",
+                                                        "text/comma-separated-values,text/plain",
+                                                        ".csv", ".xlsx", ".xls")),
+                                   fileInput("csvfile_protein", "Protein Expression Table",
+                                             multiple = FALSE,
+                                             accept = c("text/csv",
+                                                        "text/comma-separated-values,text/plain",
+                                                        ".csv", ".xlsx", ".xls")),
+                                   fileInput("csvfile_clinical", "Clinical Profile (* Required)",
+                                             multiple = FALSE,
+                                             accept = c("text/csv",
+                                                        "text/comma-separated-values,text/plain",
+                                                        ".csv", ".xlsx", ".xls")),
+                                   
+                                   # Include clarifying text ----
+                                   helpText("Note: Maximum file size allowed for uploading is 300MB."),
+                                   
+                                   # Input: Checkbox if file has header ----
+                                   checkboxInput("header", "Header", TRUE),
+                                   
+                                   fluidRow(
+                                     # Input: Select separator ----
+                                     column(6, radioButtons("sep", "Separator",
+                                                            choices = c(Comma = ",",
+                                                                        Semicolon = ";",
+                                                                        Tab = "\t",
+                                                                        Space = " "),
+                                                            selected = ",")),
+                                     # Input: Select quotes ----
+                                     column(6, radioButtons("quote", "Quote",
+                                                            choices = c(None = "",
+                                                                        "Double Quote" = '"',
+                                                                        "Single Quote" = "'"),
+                                                            selected = '"'))
+                                   ),
+                                   # Horizontal line ----
+                                   tags$hr(),
+                                   p('If you want a sample .csv file to upload,',
+                                     'you can first download the sample',
+                                     a(href = 'data/Protein.csv', 'Protein.csv'), ', ',
+                                     a(href = 'data/mutation.csv', 'mutation.csv'), ', ',
+                                     a(href = 'data/RNA.csv', 'RNA.csv'), ', ',
+                                     a(href = 'data/Clinical.csv', 'Clinical.csv'), ' and ',
+                                     a(href = 'data/Image_Features_Ass_General_CPTAC_merged_by_mean.csv', 'image_features.csv' ),
+                                     'files, and then try uploading them.'),
+                                   actionButton("action1", "Confirm when Complete")
                       ),
                       mainPanel(
                         tabsetPanel(
                           tabPanel("About",
                                    h2("iGenomicsR:", style="color: STEELBLUE; font-size: 22px"),
-                                   h2("A Multi-omics Platform for Integrative Genomics Data Analysis and Visualization", style="color: STEELBLUE; font-size: 20px; margin: 0px"),
+                                   h2("An integrative platform to explore, visualize, and analyze multidimensional genomics data for disease", style="color: STEELBLUE; font-size: 20px; margin: 0px"),
                                    HTML('<p> <br> This application was developed to help biologists to do integrative analysis of multi-dimentsional genomics data. We provide plots and statistical test to identify patterns from their data and also test their hypothesis. We would like to thank everyone who has made constructive suggestions so far. We will document the addition of new features in the News tab.</p>'),
-                                   img(src="images/iGenomicsR_banner.png",
-                                       height = 600,
-                                       style = "margin:0px 0px; padding-bottom: 5px")
+                                   h4("Software references"),
+                                   HTML('<p>R Development Core Team. <i><a href="http://www.r-project.org/">R</a>:  A Language and Environment for Statistical Computing.</i> R Foundation for Statistical Computing, Vienna (2013) <br>
+                                        RStudio and Inc. <i><a href="http://www.rstudio.com/shiny/">shiny</a>: Web Application Framework for R.</i> R package version 0.5.0 (2013) <br> 
+                                        Hadley Wickham. <i><a href="http://docs.ggplot2.org/current/">ggplot2</a>: a plotting system for R.</i> R package version 1.0.1 <br>
+                                        Erich Neuwirth. <i><a href="http://cran.r-project.org/web/packages/RColorBrewer/index.html">RColorBrewer</a>: ColorBrewer palettes.</i> R package version 1.1-2<br>
+                                        Hadley Wickham. <i><a href="https://cran.r-project.org/web/packages/reshape2/index.html">reshape2</a>: Flexibly Reshape Data.</i> R package version 1.4.1 <br>
+                                        David B. Dahl. <i><a href="https://cran.r-project.org/web/packages/xtable/index.html">xtable</a>: Export tables to LaTeX or HTML.</i> R package version 1.7-4 <br>
+                                        </p>')
                                    ),
                           tabPanel("Dataset",
                                    h4("Data File required", style="color: STEELBLUE; padding-top: 10px"),
                                    
                                    fluidRow(
                                      column(2, "Mutation Profile", htmlOutput("check1")),
-                                     column(2, "Image Feature", htmlOutput("check5")),
-                                     column(2, "RNA Expression", htmlOutput("check2")),
-                                     column(2, "Protein Expression", htmlOutput("check3")),
+                                     column(2, "Image Profile", htmlOutput("check5")),
+                                     column(2, "RNA Expression Profile", htmlOutput("check2")),
+                                     column(2, "Protein Expression Profile", htmlOutput("check3")),
                                      column(2, "Clinical Profile", htmlOutput("check4")),
                                      style="text-align: center"
                                    ),
@@ -370,7 +368,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               h4("De novo clustering of whole transcriptome", style="color: STEELBLUE"),
                                               textInput("RNAheatGeneCutoff", "Gene filter criteria", "var > 0.95"),
                                               helpText("eg. maxExp > 0.5 and var > 0.8 and cv > 0.5\nFilter order: maxExp, var, cv. Check FAQ for more detail."),
-                                              prettyCheckbox(inputId = "show.RNA.name.1", label = "Show RNA names", FALSE, icon = icon("check")),
+                                              prettyCheckbox(inputId = "show.RNA.name", label = "Show RNA names", FALSE, icon = icon("check")),
                                               actionButton("action.integration.RNA.denovo", "Run",style="color: WHITE; background-color: DODGERBLUE"),
                                               
                                               h4("Clustering on selected genes", style="color: STEELBLUE"),
@@ -379,7 +377,6 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                               awesomeRadio("RNAheatClustMethod", "", list("hierarchical clustering"=0, "kmeans clustering"=1), 0),
                                               conditionalPanel(condition="input.RNAheatClustMethod==1",
                                                                numericInput("RNAheatKmeansK", "Number of clusters", value = 2, min=2)),
-                                              prettyCheckbox(inputId = "show.RNA.name.2", label = "Show RNA names", FALSE, icon = icon("check")),
                                               actionButton("action.integration.RNA.inputgenes", "Run",style="color: WHITE; background-color: DODGERBLUE"),
                                               tags$hr(),
                                               h4("Add more features to heatmap", style="color: STEELBLUE"),
@@ -396,7 +393,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                                                                textInput("RNAheatInputProteins", "Paste genes here", "PTEN"),
                                                                materialSwitch(inputId = "do_hclust_rna_protein", label = "Sort genes by hierarchical clustering (average distance)", status = "primary")),
                                               conditionalPanel(condition="output.hasMutationData == 1",
-                                                prettyCheckbox(inputId = "RNAheatHasMutation", label = "Input genes to plot mutation", icon = icon("check"))
+                                                prettyCheckbox(inputId = "RNAheatHasMutation", label = "Input genes to plot RNA level", icon = icon("check"))
                                               ),
                                               conditionalPanel(condition="input.RNAheatHasMutation==1",
                                                                textInput("RNAheatInputMutation", "Paste genes here", "PTEN, TP53"),
@@ -536,9 +533,89 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                         uiOutput("AnalysisDataTypeUI"),
                         h4("Define patient groups", style="color: STEELBLUE"),
                         fluidRow(
-                          column(6, uiOutput("PatientGroupsInputUI1")),
-                          column(6, uiOutput("PatientGroupsInputUI2"))
-
+                          column(6, textAreaInput(inputId="patientGroups1", label = "Group 1", cols=10, rows = 10,
+                                                  value="TCGA-A2-A0D1-01
+TCGA-A2-A0EQ-01
+TCGA-A2-A0EY-01
+TCGA-A7-A0CJ-01
+TCGA-AR-A1AW-01
+TCGA-C8-A12L-01
+TCGA-C8-A12T-01
+TCGA-C8-A130-01
+TCGA-C8-A131-01
+TCGA-A2-A0CM-01
+TCGA-A2-A0D0-01
+TCGA-A2-A0SW-01
+TCGA-A2-A0SX-01
+TCGA-A2-A0T1-01
+TCGA-A2-A0T2-01
+TCGA-A2-A0YG-01
+TCGA-A7-A0CE-01
+TCGA-A8-A06Z-01
+TCGA-A8-A079-01
+TCGA-AN-A0FL-01
+TCGA-AO-A03O-01
+TCGA-AO-A0J6-01
+TCGA-AO-A12D-01
+TCGA-AR-A0TX-01
+TCGA-AR-A1AQ-01
+TCGA-BH-A0C0-01
+TCGA-BH-A0E0-01
+TCGA-BH-A18Q-01
+TCGA-BH-A18U-01
+TCGA-BH-A18V-01
+TCGA-C8-A12P-01
+TCGA-C8-A12Q-01
+TCGA-C8-A12W-01
+TCGA-C8-A12Z-01
+TCGA-C8-A134-01
+TCGA-C8-A135-01
+TCGA-C8-A138-01
+TCGA-D8-A142-01
+TCGA-E2-A150-01
+TCGA-E2-A159-01")
+                          ),
+                          column(6, textAreaInput(inputId="patientGroups2", label = "Group 2", cols=10, rows = 10,
+                                                  value="TCGA-A2-A0EV-01
+TCGA-A2-A0EX-01
+TCGA-A2-A0T7-01
+TCGA-A2-A0YC-01
+TCGA-A2-A0YI-01
+TCGA-A2-A0YL-01
+TCGA-AO-A126-01
+TCGA-AR-A1AV-01
+TCGA-BH-A0BV-01
+TCGA-C8-A12U-01
+TCGA-E2-A154-01
+TCGA-A2-A0D2-01
+TCGA-A2-A0T3-01
+TCGA-A2-A0T6-01
+TCGA-A2-A0YD-01
+TCGA-A2-A0YF-01
+TCGA-A7-A0CD-01
+TCGA-A7-A13F-01
+TCGA-A8-A06N-01
+TCGA-A8-A076-01
+TCGA-A8-A09I-01
+TCGA-AN-A04A-01
+TCGA-AN-A0FK-01
+TCGA-AO-A0J9-01
+TCGA-AO-A0JE-01
+TCGA-AO-A0JJ-01
+TCGA-AO-A0JM-01
+TCGA-AO-A12B-01
+TCGA-AO-A12E-01
+TCGA-AR-A0TY-01
+TCGA-BH-A0AV-01
+TCGA-BH-A0BZ-01
+TCGA-BH-A0DD-01
+TCGA-BH-A0DG-01
+TCGA-BH-A0E9-01
+TCGA-BH-A18N-01
+TCGA-BH-A18R-01
+TCGA-C8-A12V-01
+TCGA-D8-A13Y-01
+TCGA-E2-A10A-01"))
                           ),
                         
                         tags$br(),
@@ -553,8 +630,6 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                         h4("Patients you inputted"),
                         DT::dataTableOutput("inputtedPatientGroups"),
                         conditionalPanel(condition="input.AnalysisDataType==5",
-                                         uiOutput("SurvivalStandardTerminologyUI1"),
-                                         uiOutput("SurvivalStandardTerminologyUI2"),
                                          plotOutput("SurvivalPlot", height='100%', width='100%'),
                                          plotOutput("DFSurvivalPlot", height='100%', width='100%')),
                         conditionalPanel(condition="input.AnalysisDataType!=5",
@@ -587,10 +662,10 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                     tags$div(
                       tags$img(src='images/IUSM2.png',
                                height="100",
-                               alt="IUSM", class="center", style="padding: 30px"),
+                               alt="TSUNAMI", class="center", style="padding: 30px"),
                       tags$img(src='images/regenstrief.png',
                                height="100",
-                               alt="Regenstrief", class="center", style="padding: 30px"),
+                               alt="TSUNAMI", class="center", style="padding: 30px"),
                       style="text-align: center; padding: 20px"
                     ),
                     h4("Our Other Softwares", style="color: STEELBLUE; padding-bottom: 20px"),
@@ -635,8 +710,8 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
            ),
            tags$head(tags$script(HTML("document.title = 'iGenomicsR';"))), # rename the title by JS
            tags$div(
-             p(a("iGenomicsR", href=""), "Version v1.2 | ", a("IUSM",href="https://medicine.iu.edu/", target="_blank"), " | ", a("RI",href="http://www.regenstrief.org/", target="_blank"), style="color: grey; font-size: 12px"), 
+             p(a("iGenomicsR", href=""), "Version v1.1 | ", a("IUSM",href="https://medicine.iu.edu/", target="_blank"), " | ", a("RI",href="http://www.regenstrief.org/", target="_blank"), style="color: grey; font-size: 12px"), 
              p("Questions and feedback:  | ", a("Report Issue", href="https://github.com/huangzhii/iGenomicsR/issues", target="_blank"), " | ", a("Github", href="https://github.com/huangzhii/iGenomicsR/", target="_blank"), style="color: grey; font-size: 12px"),
              style="text-align: center; padding-top: 40px"
            )
-)
+                    )
