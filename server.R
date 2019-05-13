@@ -467,7 +467,7 @@ function(input, output, session) {
       if ( any(!(genes %in% rownames(DB.RNA()))) ){
         sendSweetAlert(session, title = "Alert",
                        text = sprintf("Genes [%s] are not contained in the RNA data",
-                                      genes[!(genes %in% rownames(DB.ppp))]),
+                                      genes[!(genes %in% rownames(DB.RNA()))]),
                        type = "warning",
                        btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
         return()
@@ -485,12 +485,10 @@ function(input, output, session) {
     # save(DB, file = "~/Desktop/DB.Rdata")
     output$ProteinDotPlot1 <- renderPlot({
       genes <- c(input$navigator.protein.expression.gene.1, input$navigator.protein.expression.gene.2)
-      # DB.ppp = DB.Protein()
-      # save(DB.ppp, genes, file = "~/Desktop/DB.protein.Rdata")
       if ( any(!(genes %in% rownames(DB.Protein()))) ){
         sendSweetAlert(session, title = "Alert",
                        text = sprintf("Genes [%s] are not contained in the protein data",
-                                      genes[!(genes %in% rownames(DB.ppp))]),
+                                      genes[!(genes %in% rownames(DB.Protein()))]),
                        type = "warning",
                        btn_labels = "Ok", html = FALSE, closeOnClickOutside = TRUE)
         return()
