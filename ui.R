@@ -579,7 +579,7 @@ navbarPage(title=div(a(img(src="images/iGenomicsR_logo2.png",
                     )
            ),
            tabPanel("Tutorial",
-                    includeMarkdown("www/README.md")
+                    includeMarkdown("README.md")
            ),
            tabPanel("About",
                     h3("About Us", style="color: STEELBLUE; padding-bottom: 20px"),
