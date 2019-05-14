@@ -69,8 +69,21 @@ User can choose either two genes and do the dot plot to find their correlations.
 ![3-3.png](resources/DBE4F097D193670CFA468BDC72DEF5B5.png)
 
 12\. Data Integration - RNA expression based (integration, de novo clustering)
+In this criteria area, user can input a format such as:
+
+```maxExp > 0.5```&nbsp;
+
+```var > 0.8```&nbsp;
+
+```cv > 0.5```&nbsp;
+
+```maxExp > 0.5 and var > 0.8 and cv > 0.5```&nbsp;
+
+
+Where all the values are from 0 to 1, 0 stand for 0.00%, 1 stands for 100%. maxExp is the abbreviation of maximum expression value, var is the abbreviation of variance, cv is the abbreviation of coefficient of variances. When apply multiple filters, use "and" with spaces to concatenate it. Filter order: (1) maxExp, (2) var, (3) cv.
 
 ![3-4.png](resources/9B82EB809B431BEDDBE890F179936D5B.png)
+
 
 13\. Data Integration - RNA expression based (hierarchical clustering)
 
